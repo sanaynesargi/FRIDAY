@@ -1,0 +1,61 @@
+[
+  {
+    "id": "baba6225-c473-4e10-9bc9-30ea96380048",
+    "name": "UT Austin #1",
+    "description": "Why major essay (300 words)",
+    "nodes": [
+      {
+        "id": "Mahi- UT Austin Major Prompt",
+        "name": "Mahi- UT Austin Major Prompt",
+        "type": "piece",
+        "external": true
+      },
+      {
+        "id": "Silly, Slightly Humorous",
+        "name": "Silly, Slightly Humorous",
+        "type": "idea",
+        "external": false
+      },
+      {
+        "id": "Aerodynamics:_SEES",
+        "name": "Aerodynamics:_SEES",
+        "type": "idea",
+        "external": false
+      },
+      {
+        "id": "Jet Engine Optimization",
+        "name": "Jet Engine Optimization",
+        "type": "idea",
+        "external": false
+      }
+    ],
+    "edges": [
+      {
+        "source": "Mahi- UT Austin Major Prompt",
+        "target": "Silly, Slightly Humorous",
+        "id": "Mahi- UT Austin Major Prompt-Silly, Slightly Humorous",
+        "sourceName": "Mahi- UT Austin Major Prompt",
+        "targetName": "Silly, Slightly Humorous",
+        "note": "Similar to the use of \"aunties\" in this essay, I think a superhero line could work here to add some more character."
+      },
+      {
+        "source": "Mahi- UT Austin Major Prompt",
+        "target": "Aerodynamics:_SEES",
+        "id": "Mahi- UT Austin Major Prompt-Aerodynamics:_SEES",
+        "sourceName": "Mahi- UT Austin Major Prompt",
+        "targetName": "Aerodynamics:_SEES",
+        "note": "This will be a real-world and UT experience that will provide experiences that I should be able to talk about in this essay"
+      },
+      {
+        "source": "Jet Engine Optimization",
+        "target": "Aerodynamics:_SEES",
+        "id": "Jet Engine Optimization-Aerodynamics:_SEES",
+        "sourceName": "Jet Engine Optimization",
+        "targetName": "Aerodynamics:_SEES",
+        "note": "Another example of a real-world experience with research"
+      }
+    ],
+    "created": 1750486772.278207,
+    "modified": 1750488044097.0
+  }
+]
