@@ -62,8 +62,6 @@ function App() {
     ideas: 0,
     pieces: 0,
     connections: 0,
-    topIdea: [] as Array<{name: string, connections: number}>,
-    topPiece: [] as Array<{name: string, connections: number}>,
     externalPieces: 0
   });
   const [searchQuery, setSearchQuery] = useState('');
@@ -1474,124 +1472,6 @@ function App() {
                     <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
                       External Pieces
                     </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-              
-              {/* Top Connected Notes Display */}
-              <Card elevation={8} sx={{ 
-                mt: 2,
-                borderRadius: 3,
-                background: 'rgba(30, 30, 50, 0.95)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(102, 126, 234, 0.3)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
-              }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h5" gutterBottom fontWeight={700} sx={{ 
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 3
-                  }}>
-                    Most Connected
-                  </Typography>
-                  
-                  {/* Top Idea */}
-                  <Box sx={{ 
-                    mt: 2, 
-                    p: 3, 
-                    borderRadius: 3, 
-                    background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
-                    color: 'white',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    boxShadow: '0 8px 25px rgba(76, 175, 80, 0.4)',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 12px 35px rgba(76, 175, 80, 0.5)'
-                    }
-                  }}>
-                    <Box sx={{ 
-                      position: 'absolute', 
-                      top: -15, 
-                      right: -15, 
-                      width: 50, 
-                      height: 50, 
-                      borderRadius: '50%', 
-                      background: 'rgba(255,255,255,0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backdropFilter: 'blur(10px)'
-                    }}>
-                      <Typography variant="h6" fontWeight={800}>
-                        {stats.topIdea.length > 0 ? stats.topIdea[0].connections : 0}
-                      </Typography>
-                    </Box>
-                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-                      Top Idea{stats.topIdea.length > 1 ? 's' : ''}
-                    </Typography>
-                    {stats.topIdea.length > 0 ? (
-                      stats.topIdea.map((idea, index) => (
-                        <Typography key={index} variant="body2" sx={{ opacity: 0.95, mb: index < stats.topIdea.length - 1 ? 1 : 0, fontWeight: 500 }}>
-                          {idea.name}
-                        </Typography>
-                      ))
-                    ) : (
-                      <Typography variant="body2" sx={{ opacity: 0.9, fontStyle: 'italic' }}>
-                        No ideas yet
-                      </Typography>
-                    )}
-                  </Box>
-                  
-                  {/* Top Piece */}
-                  <Box sx={{ 
-                    mt: 3, 
-                    p: 3, 
-                    borderRadius: 3, 
-                    background: 'linear-gradient(135deg, #2196f3 0%, #42a5f5 100%)',
-                    color: 'white',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    boxShadow: '0 8px 25px rgba(33, 150, 243, 0.4)',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 12px 35px rgba(33, 150, 243, 0.5)'
-                    }
-                  }}>
-                    <Box sx={{ 
-                      position: 'absolute', 
-                      top: -15, 
-                      right: -15, 
-                      width: 50, 
-                      height: 50, 
-                      borderRadius: '50%', 
-                      background: 'rgba(255,255,255,0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backdropFilter: 'blur(10px)'
-                    }}>
-                      <Typography variant="h6" fontWeight={800}>
-                        {stats.topPiece.length > 0 ? stats.topPiece[0].connections : 0}
-                      </Typography>
-                    </Box>
-                    <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-                      Top Piece{stats.topPiece.length > 1 ? 's' : ''}
-                    </Typography>
-                    {stats.topPiece.length > 0 ? (
-                      stats.topPiece.map((piece, index) => (
-                        <Typography key={index} variant="body2" sx={{ opacity: 0.95, mb: index < stats.topPiece.length - 1 ? 1 : 0, fontWeight: 500 }}>
-                          {piece.name}
-                        </Typography>
-                      ))
-                    ) : (
-                      <Typography variant="body2" sx={{ opacity: 0.9, fontStyle: 'italic' }}>
-                        No pieces yet
-                      </Typography>
-                    )}
                   </Box>
                 </CardContent>
               </Card>

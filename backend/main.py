@@ -139,6 +139,7 @@ def submit(sub: Submission):
     if sub.type == "piece" and sub.external:
         # Add #extern tag at the top
         content = "#extern\n" + content
+        
     note_name = create_obsidian_note(sub.type, content, sub.note_name)
 
     # 2. Get existing notes for context (GET /vault/list)
@@ -174,76 +175,11 @@ def get_stats():
         ideas = len([note for note in existing_notes if note.startswith("Idea -")])
         pieces = len([note for note in existing_notes if note.startswith("Piece -")])
         
-        # Count connections and find top connected notes
+        # Count connections
         total_connections = 0
-        idea_connections = {}
-        piece_connections = {}
-        
-        # First pass: count outgoing connections and build note content map
-        note_contents = {}
         for note in existing_notes:
             content = get_note_content(note)
-            note_contents[note] = content
-            # Count outgoing connections ([[links]] within this note)
-            outgoing_connections = content.count('[[')
-            total_connections += outgoing_connections
-            
-            # Track connections by type
-            if note.startswith("Idea -"):
-                idea_connections[note] = outgoing_connections
-            elif note.startswith("Piece -"):
-                piece_connections[note] = outgoing_connections
-        
-        # Second pass: count incoming connections (when other notes link to this note)
-        for note in existing_notes:
-            note_name_without_ext = note.replace(".md", "")
-            note_name_without_prefix = note_name_without_ext.replace("Idea - ", "").replace("Piece - ", "")
-            
-            # Count how many other notes link to this note
-            incoming_connections = 0
-            for other_note, other_content in note_contents.items():
-                if other_note != note:  # Don't count self-references
-                    # Count references to this note (with and without prefixes)
-                    incoming_connections += other_content.count(f'[[{note_name_without_ext}]]')
-                    incoming_connections += other_content.count(f'[[{note_name_without_prefix}]]')
-            
-            # Add incoming connections to total and individual counts
-            total_connections += incoming_connections
-            
-            if note.startswith("Idea -"):
-                idea_connections[note] += incoming_connections
-            elif note.startswith("Piece -"):
-                piece_connections[note] += incoming_connections
-        
-        # Find top connected idea and piece
-        top_idea = max(idea_connections.items(), key=lambda x: x[1]) if idea_connections else ("", 0)
-        top_piece = max(piece_connections.items(), key=lambda x: x[1]) if piece_connections else ("", 0)
-        
-        # Handle ties for ideas
-        top_idea_connections = []
-        if idea_connections:
-            max_idea_connections = max(idea_connections.values())
-            top_ideas = [(name, count) for name, count in idea_connections.items() if count == max_idea_connections]
-            top_idea_connections = [
-                {
-                    "name": name.replace("Idea - ", "").replace(".md", ""),
-                    "connections": count
-                }
-                for name, count in top_ideas[:3]  # Limit to 3
-            ]
-        
-        # Handle ties for pieces
-        top_piece_connections = []
-        if piece_connections:
-            max_piece_connections = max(piece_connections.values())
-            top_pieces = [(name, count) for name, count in piece_connections.items() if count == max_piece_connections]
-            top_piece_connections = [
-                {
-                    "name": name.replace("Piece - ", "").replace(".md", ""),
-                    "connections": count
-                }
-                for name, count in top_pieces[:3]  # Limit to 3
-            ]
+            total_connections += content.count('[[')
         
         external_pieces = len([note for note in existing_notes if is_external_note(get_note_content(note))])
         
@@ -252,8 +188,6 @@ def get_stats():
             "ideas": ideas,
             "pieces": pieces,
             "connections": total_connections,
-            "topIdea": top_idea_connections,
-            "topPiece": top_piece_connections,
             "externalPieces": external_pieces
         }
     except Exception as e:
@@ -263,8 +197,6 @@ def get_stats():
             "ideas": 0,
             "pieces": 0,
             "connections": 0,
-            "topIdea": [],
-            "topPiece": [],
             "externalPieces": 0
         }
 
