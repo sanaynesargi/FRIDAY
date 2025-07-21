@@ -476,7 +476,7 @@ function App() {
       const res = await fetch(`${BACKEND_URL}/all_notes`);
       if (res.ok) {
         const data = await res.json();
-        setAllNotes(data.results || []);
+        setAllNotes(data.notes || []);
       }
     } catch (err) {
       setError('Failed to fetch all notes');
