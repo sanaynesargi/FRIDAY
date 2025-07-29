@@ -632,7 +632,10 @@ def list_obsidian_notes():
         resp = requests.get(url, headers=headers, verify=False)
         if not resp.ok:
             raise Exception(f"Obsidian Local REST API error: {resp.text}")
-        return resp.json().get("files", [])
+        all_files = resp.json().get("files", [])
+        # Filter to only include files in the root directory (no '/' in the path)
+        root_files = [file for file in all_files if '/' not in file]
+        return root_files
     except Exception as e:
         return []
 
