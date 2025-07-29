@@ -169,19 +169,21 @@ def get_stats():
     try:
         # Get all notes from the vault
         existing_notes = list_obsidian_notes()
+        # Filter to only include notes with "Idea" or "Piece" in the name
+        filtered_notes = [note for note in existing_notes if "Idea" in note or "Piece" in note]
         
         # Count different types
-        total_notes = len(existing_notes)
-        ideas = len([note for note in existing_notes if note.startswith("Idea -")])
-        pieces = len([note for note in existing_notes if note.startswith("Piece -")])
+        total_notes = len(filtered_notes)
+        ideas = len([note for note in filtered_notes if note.startswith("Idea -")])
+        pieces = len([note for note in filtered_notes if note.startswith("Piece -")])
         
         # Count connections
         total_connections = 0
-        for note in existing_notes:
+        for note in filtered_notes:
             content = get_note_content(note)
             total_connections += content.count('[[')
         
-        external_pieces = len([note for note in existing_notes if is_external_note(get_note_content(note))])
+        external_pieces = len([note for note in filtered_notes if is_external_note(get_note_content(note))])
         
         return {
             "totalNotes": total_notes,
@@ -204,12 +206,14 @@ def get_stats():
 def search(req: SearchRequest):
     try:
         existing_notes = list_obsidian_notes()
+        # Filter to only include notes with "Idea" or "Piece" in the name
+        filtered_notes = [note for note in existing_notes if "Idea" in note or "Piece" in note]
         results = []
         # Build note content and connection maps for connection counting
         note_contents = {}
-        for note in existing_notes:
+        for note in filtered_notes:
             note_contents[note] = get_note_content(note)
-        for note in existing_notes:
+        for note in filtered_notes:
             content = note_contents[note]
             # Remove connections for text search
             content_without_connections = re.sub(r'\[\[.*?\]\]', '', content)
@@ -302,9 +306,11 @@ def search(req: SearchRequest):
 def search_by_tags(req: TagSearchRequest):
     try:
         existing_notes = list_obsidian_notes()
+        # Filter to only include notes with "Idea" or "Piece" in the name
+        filtered_notes = [note for note in existing_notes if "Idea" in note or "Piece" in note]
         results = []
         
-        for note in existing_notes:
+        for note in filtered_notes:
             content = get_note_content(note)
             note_type = "idea" if note.startswith("Idea -") else "piece"
             
@@ -337,7 +343,7 @@ def search_by_tags(req: TagSearchRequest):
                 note_name_without_ext = note.replace(".md", "")
                 note_name_without_prefix = note_name_without_ext.replace("Idea - ", "").replace("Piece - ", "")
                 
-                for other_note in existing_notes:
+                for other_note in filtered_notes:
                     if other_note != note:
                         other_content = get_note_content(other_note)
                         incoming += other_content.count(f'[[{note_name_without_ext}]]')
@@ -658,9 +664,11 @@ def summarize_note_with_ollama(note_content):
         return note_content[:200]  # fallback: truncate
 
 def suggest_connections(content, existing_notes, new_note_name=None):
+    # Filter to only include notes with "Idea" or "Piece" in the name
+    filtered_notes = [note for note in existing_notes if "Idea" in note or "Piece" in note]
     # Fetch and summarize each note, skipping the new note itself
     summarized_notes = {}
-    for note_name in existing_notes:
+    for note_name in filtered_notes:
         if new_note_name and note_name == new_note_name:
             continue
         note_content = get_note_content(note_name)
@@ -706,9 +714,11 @@ def add_connection(note_name, connection, reason):
 def all_notes():
     try:
         existing_notes = list_obsidian_notes()
+        # Filter to only include notes with "Idea" or "Piece" in the name
+        filtered_notes = [note for note in existing_notes if "Idea" in note or "Piece" in note]
         results = []
         
-        for note in existing_notes:
+        for note in filtered_notes:
             content = get_note_content(note)
             note_type = "idea" if note.startswith("Idea -") else "piece"
             
@@ -730,7 +740,7 @@ def all_notes():
             note_name_without_ext = note.replace(".md", "")
             note_name_without_prefix = note_name_without_ext.replace("Idea - ", "").replace("Piece - ", "")
             
-            for other_note in existing_notes:
+            for other_note in filtered_notes:
                 if other_note != note:
                     other_content = get_note_content(other_note)
                     incoming += other_content.count(f'[[{note_name_without_ext}]]')
