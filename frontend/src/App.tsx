@@ -453,77 +453,75 @@ function App() {
       ) : currentPage === 'prompts-essays' ? (
         <PromptsEssays />
       ) : (
-        <Container maxWidth="xl" sx={{ py: 4, minHeight: 'calc(100vh - 64px)' }}>
-          <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', md: 'row' } }}>
+        <Container maxWidth="xl" sx={{ py: 3, minHeight: 'calc(100vh - 64px)' }}>
+          <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
             <Box sx={{ flex: 1 }}>
               <Paper elevation={8} sx={{ 
-                p: 4, 
+                p: 3, 
                 borderRadius: 3,
                 background: 'rgba(30, 30, 50, 0.95)',
                 backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(102, 126, 234, 0.3)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
               }}>
-                <Typography variant="h3" gutterBottom fontWeight={800} align="center" sx={{ 
+                <Typography variant="h4" gutterBottom fontWeight={800} align="center" sx={{ 
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  mb: 3,
+                  mb: 2,
                   textShadow: '0 2px 4px rgba(0,0,0,0.3)'
                 }}>
                   FRIDAY Idea Base
                 </Typography>
                 <Typography variant="h6" align="center" gutterBottom sx={{ 
                   color: '#e0e0e0',
-                  mb: 4,
+                  mb: 3,
                   fontWeight: 300
                 }}>
                   Integrated with Obsidian.
                 </Typography>
-                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
+                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
                   <ToggleButtonGroup
                     value={type}
                     exclusive
                     onChange={handleType}
                     sx={{ 
-                      mb: 3,
+                      mb: 2,
                       '& .MuiToggleButton-root': {
                         borderRadius: 2,
                         fontWeight: 600,
-                        textTransform: 'none',
-                        px: 3,
-                        py: 1.5,
-                        background: 'rgba(60, 60, 80, 0.8)',
-                        color: '#e0e0e0',
-                        border: '1px solid rgba(102, 126, 234, 0.3)',
-                        '&:hover': {
-                          background: 'rgba(80, 80, 100, 0.9)',
-                          color: '#ffffff'
-                        },
+                        px: 2,
+                        py: 1,
+                        color: '#b0b0b0',
+                        borderColor: 'rgba(102, 126, 234, 0.3)',
+                        background: 'rgba(40, 40, 60, 0.8)',
                         '&.Mui-selected': {
                           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                           color: 'white',
                           '&:hover': {
                             background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
                           }
+                        },
+                        '&:hover': {
+                          background: 'rgba(102, 126, 234, 0.1)',
+                          borderColor: '#667eea'
                         }
                       }
                     }}
-                    fullWidth
                   >
                     <ToggleButton value="idea">Idea</ToggleButton>
-                    <ToggleButton value="piece">Piece</ToggleButton>
+                    <ToggleButton value="piece">Essay</ToggleButton>
                   </ToggleButtonGroup>
+                  
                   <TextField
                     label="Note Name"
                     value={noteName}
                     onChange={e => setNoteName(e.target.value)}
-                    multiline
-                    minRows={6}
                     fullWidth
+                    required
                     sx={{ 
-                      mb: 3,
+                      mb: 2,
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
                         background: 'rgba(40, 40, 60, 0.8)',
@@ -544,13 +542,8 @@ function App() {
                       },
                       '& .MuiInputLabel-root.Mui-focused': {
                         color: '#667eea'
-                      },
-                      '& .MuiFormHelperText-root': {
-                        color: '#ff6b6b'
                       }
                     }}
-                    placeholder="Enter the name for your new note"
-                    helperText={hasInvalidChars(noteName) ? "Note name cannot contain '|' or '/' characters" : ""}
                     error={hasInvalidChars(noteName)}
                   />
                   <TextField
@@ -558,11 +551,11 @@ function App() {
                     value={content}
                     onChange={e => setContent(e.target.value)}
                     multiline
-                    minRows={4}
+                    minRows={3}
                     fullWidth
                     required
                     sx={{ 
-                      mb: 3,
+                      mb: 2,
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
                         background: 'rgba(40, 40, 60, 0.8)',
@@ -596,104 +589,397 @@ function App() {
                   <Button
                     type="submit"
                     variant="contained"
-                    color="primary"
-                    fullWidth
-                    disabled={loading || !content.trim() || hasInvalidChars(noteName)}
-                    size="large"
+                    disabled={loading || hasInvalidChars(noteName)}
                     sx={{
                       borderRadius: 2,
-                      py: 1.5,
                       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                       textTransform: 'none',
                       fontWeight: 600,
-                      fontSize: '1.1rem',
+                      px: 3,
+                      py: 1,
                       color: '#ffffff',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                        transform: 'translateY(-1px)',
-                        boxShadow: '0 8px 25px rgba(102, 126, 234, 0.4)'
+                        background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
                       },
                       '&:disabled': {
                         background: 'rgba(80, 80, 100, 0.5)',
-                        color: '#666666',
-                        transform: 'none',
-                        boxShadow: 'none'
+                        color: '#666666'
                       }
                     }}
                   >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
+                    {loading ? <CircularProgress size={20} color="inherit" /> : 'Submit'}
                   </Button>
                 </Box>
-                {suggestions.length > 0 && (
-                  <Box sx={{ mt: 4, p: 3, borderRadius: 2, background: 'rgba(102, 126, 234, 0.1)', border: '1px solid rgba(102, 126, 234, 0.3)' }}>
-                    <Typography variant="h6" gutterBottom fontWeight={600} sx={{ color: '#667eea', mb: 2 }}>
-                      AI-Suggested Connections
-                    </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
-                      {suggestions.map(s => (
-                        <Chip
-                          key={s}
-                          label={s}
-                          icon={<LinkIcon />}
-                          color={selected.includes(s) ? 'primary' : 'default'}
-                          onClick={() =>
-                            setSelected(sel =>
-                              sel.includes(s)
-                                ? sel.filter(x => x !== s)
-                                : [...sel, s]
-                            )
+              </Paper>
+              
+              {/* Suggestions Section */}
+              {suggestions.length > 0 && (
+                <Paper elevation={8} sx={{ 
+                  mt: 3, 
+                  p: 3, 
+                  borderRadius: 3,
+                  background: 'rgba(30, 30, 50, 0.95)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(102, 126, 234, 0.3)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+                }}>
+                  <Typography variant="h6" gutterBottom fontWeight={600} sx={{ 
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    mb: 2
+                  }}>
+                    Suggested Connections
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    {suggestions.map((suggestion, index) => (
+                      <Chip
+                        key={index}
+                        label={suggestion}
+                        onClick={() => {
+                          setSelected(prev => 
+                            prev.includes(suggestion) 
+                              ? prev.filter(s => s !== suggestion)
+                              : [...prev, suggestion]
+                          );
+                        }}
+                        color={selected.includes(suggestion) ? 'primary' : 'default'}
+                        sx={{
+                          borderRadius: 2,
+                          fontWeight: 600,
+                          background: selected.includes(suggestion) 
+                            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                            : 'rgba(40, 40, 60, 0.8)',
+                          color: selected.includes(suggestion) ? 'white' : '#e0e0e0',
+                          border: '1px solid rgba(102, 126, 234, 0.3)',
+                          '&:hover': {
+                            background: selected.includes(suggestion)
+                              ? 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
+                              : 'rgba(102, 126, 234, 0.1)'
                           }
-                          sx={{ 
-                            mb: 1,
-                            borderRadius: 2,
-                            fontWeight: 500,
-                            background: selected.includes(s) ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'rgba(60, 60, 80, 0.8)',
-                            color: selected.includes(s) ? '#ffffff' : '#e0e0e0',
-                            border: '1px solid rgba(102, 126, 234, 0.3)',
-                            '&.MuiChip-clickable:hover': {
-                              transform: 'translateY(-1px)',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                              background: selected.includes(s) ? 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)' : 'rgba(80, 80, 100, 0.9)'
-                            }
-                          }}
-                        />
-                      ))}
-                    </Stack>
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                  {selected.length > 0 && (
                     <Button
-                      variant="contained"
-                      color="secondary"
-                      disabled={connectLoading || selected.length === 0}
                       onClick={handleConnect}
-                      fullWidth
+                      disabled={connectLoading}
+                      variant="contained"
                       sx={{
+                        mt: 2,
                         borderRadius: 2,
-                        py: 1.5,
-                        background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
+                        background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
                         textTransform: 'none',
                         fontWeight: 600,
+                        px: 3,
+                        py: 1,
                         color: '#ffffff',
                         '&:hover': {
-                          background: 'linear-gradient(135deg, #ff5252 0%, #e64a19 100%)',
-                          transform: 'translateY(-1px)',
-                          boxShadow: '0 8px 25px rgba(255, 107, 107, 0.4)'
+                          background: 'linear-gradient(135deg, #43a047 0%, #5cb85c 100%)'
                         },
                         '&:disabled': {
                           background: 'rgba(80, 80, 100, 0.5)',
-                          color: '#666666',
-                          transform: 'none',
-                          boxShadow: 'none'
+                          color: '#666666'
                         }
                       }}
                     >
-                      {connectLoading ? <CircularProgress size={24} color="inherit" /> : 'Approve Connections'}
+                      {connectLoading ? <CircularProgress size={20} color="inherit" /> : `Connect to ${selected.length} note${selected.length > 1 ? 's' : ''}`}
                     </Button>
+                  )}
+                </Paper>
+              )}
+              
+              {/* Search Section */}
+              <Paper elevation={8} sx={{ 
+                mt: 3, 
+                p: 3, 
+                borderRadius: 3,
+                background: 'rgba(30, 30, 50, 0.95)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(102, 126, 234, 0.3)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+              }}>
+                <Typography variant="h6" gutterBottom fontWeight={600} sx={{ 
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  mb: 2
+                }}>
+                  Search Notes
+                </Typography>
+                
+                <ToggleButtonGroup
+                  value={searchMode}
+                  exclusive
+                  onChange={(_, newValue) => {
+                    if (newValue) {
+                      setSearchMode(newValue);
+                      setSearchResults([]);
+                    }
+                  }}
+                  sx={{ 
+                    mb: 2,
+                    '& .MuiToggleButton-root': {
+                      borderRadius: 2,
+                      fontWeight: 600,
+                      px: 2,
+                      py: 1,
+                      color: '#b0b0b0',
+                      borderColor: 'rgba(102, 126, 234, 0.3)',
+                      background: 'rgba(40, 40, 60, 0.8)',
+                      '&.Mui-selected': {
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
+                        }
+                      },
+                      '&:hover': {
+                        background: 'rgba(102, 126, 234, 0.1)',
+                        borderColor: '#667eea'
+                      }
+                    }
+                  }}
+                >
+                  <ToggleButton value="text">Text Search</ToggleButton>
+                  <ToggleButton value="prompt">Prompt Search</ToggleButton>
+                </ToggleButtonGroup>
+                
+                <TextField
+                  label="Search Query"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  fullWidth
+                  sx={{ 
+                    mb: 2,
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      background: 'rgba(40, 40, 60, 0.8)',
+                      color: '#ffffff',
+                      '& fieldset': {
+                        borderColor: 'rgba(102, 126, 234, 0.3)'
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#667eea'
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#667eea',
+                        borderWidth: 2
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: '#b0b0b0'
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: '#667eea'
+                    }
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={handleMicClick}
+                          sx={{ color: isListening ? '#ff5252' : '#b0b0b0' }}
+                        >
+                          {isListening ? <MicOffIcon /> : <MicIcon />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                
+                {/* Tag Input Section for Prompt Search */}
+                {searchMode === 'prompt' && (
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <TextField
+                        label="Add tags"
+                        value={tagInput}
+                        onChange={e => setTagInput(e.target.value)}
+                        size="small"
+                        sx={{ 
+                          flex: 1,
+                          mr: 1,
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                            background: 'rgba(40, 40, 60, 0.8)',
+                            color: '#ffffff',
+                            '& fieldset': {
+                              borderColor: 'rgba(102, 126, 234, 0.3)'
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#667eea'
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#667eea',
+                              borderWidth: 2
+                            }
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: '#b0b0b0'
+                          },
+                          '& .MuiInputLabel-root.Mui-focused': {
+                            color: '#667eea'
+                          }
+                        }}
+                        placeholder="Enter tag name..."
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && tagInput.trim()) {
+                            setSearchTags(prev => [...prev, tagInput.trim()]);
+                            setTagInput('');
+                          }
+                        }}
+                      />
+                      <Button
+                        onClick={() => {
+                          if (tagInput.trim()) {
+                            setSearchTags(prev => [...prev, tagInput.trim()]);
+                            setTagInput('');
+                          }
+                        }}
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          borderColor: 'rgba(102, 126, 234, 0.5)',
+                          color: '#e0e0e0',
+                          '&:hover': {
+                            borderColor: '#667eea',
+                            background: 'rgba(102, 126, 234, 0.1)'
+                          }
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </Box>
+                    
+                    {searchTags.length > 0 && (
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        {searchTags.map((tag, index) => (
+                          <Chip
+                            key={index}
+                            label={tag}
+                            onDelete={() => setSearchTags(prev => prev.filter((_, i) => i !== index))}
+                            sx={{
+                              borderRadius: 2,
+                              background: 'rgba(102, 126, 234, 0.2)',
+                              color: '#e0e0e0',
+                              border: '1px solid rgba(102, 126, 234, 0.3)',
+                              '& .MuiChip-deleteIcon': {
+                                color: '#b0b0b0',
+                                '&:hover': { color: '#ff5252' }
+                              }
+                            }}
+                          />
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
+                )}
+                
+                <Button
+                  onClick={handleSearch}
+                  disabled={searchLoading || !searchQuery.trim()}
+                  variant="contained"
+                  sx={{
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    px: 3,
+                    py: 1,
+                    color: '#ffffff',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
+                    },
+                    '&:disabled': {
+                      background: 'rgba(80, 80, 100, 0.5)',
+                      color: '#666666'
+                    }
+                  }}
+                >
+                  {searchLoading ? <CircularProgress size={20} color="inherit" /> : 'Search'}
+                </Button>
+                
+                {/* Search Results */}
+                {searchResults.length > 0 && (
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6" gutterBottom fontWeight={600} sx={{ color: '#e0e0e0', mb: 2 }}>
+                      Results ({searchResults.length})
+                    </Typography>
+                    <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                      {searchResults.map((result, index) => (
+                        <Card key={index} sx={{ 
+                          mb: 2,
+                          borderRadius: 2,
+                          background: 'rgba(40, 40, 60, 0.8)',
+                          border: '1px solid rgba(102, 126, 234, 0.2)',
+                          '&:hover': {
+                            background: 'rgba(50, 50, 70, 0.9)',
+                            transform: 'translateY(-2px)',
+                            boxShadow: '0 8px 25px rgba(0,0,0,0.3)'
+                          }
+                        }}>
+                          <CardContent sx={{ p: 2 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                              <Typography 
+                                variant="h6" 
+                                fontWeight={600} 
+                                sx={{ 
+                                  color: '#667eea',
+                                  cursor: 'pointer',
+                                  textDecoration: 'underline',
+                                  flex: 1,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                  '&:hover': { color: '#8b9dc3' }
+                                }}
+                                onClick={() => handleOpenInObsidian(result.name, result.type)}
+                              >
+                                {result.name}
+                              </Typography>
+                              <Chip 
+                                label={result.type} 
+                                size="small" 
+                                color={result.type === 'idea' ? 'success' : 'info'}
+                                sx={{ ml: 1 }}
+                              />
+                            </Box>
+                            
+                            {searchMode === 'prompt' && result.reason && (
+                              <Typography variant="body2" sx={{ 
+                                color: '#e0e0e0', 
+                                mb: 1,
+                                wordWrap: 'break-word',
+                                whiteSpace: 'pre-wrap'
+                              }}>
+                                {result.reason}
+                              </Typography>
+                            )}
+                            
+                            {searchMode === 'text' && result.content && (
+                              <Typography variant="body2" sx={{ 
+                                color: '#e0e0e0',
+                                wordWrap: 'break-word',
+                                whiteSpace: 'pre-wrap'
+                              }}>
+                                {highlightText(result.content, searchQuery)}
+                              </Typography>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </Box>
                   </Box>
                 )}
               </Paper>
             </Box>
             
-            {/* Search Panel */}
-            <Box sx={{ width: { xs: '100%', md: 350 } }}>
+            <Box sx={{ width: { xs: '100%', md: 280 } }}>
               <Card elevation={8} sx={{ 
                 borderRadius: 3,
                 background: 'rgba(30, 30, 50, 0.95)',
@@ -701,346 +987,17 @@ function App() {
                 border: '1px solid rgba(102, 126, 234, 0.3)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
               }}>
-                <CardContent sx={{ p: 3 }}>
+                <CardContent sx={{ p: 2 }}>
                   <Typography variant="h5" gutterBottom fontWeight={700} sx={{ 
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     backgroundClip: 'text',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
-                    mb: 3
-                  }}>
-                    Search Notes
-                  </Typography>
-                  
-                  <Button
-                    variant="outlined"
-                    sx={{ mb: 2, borderRadius: 2, fontWeight: 600, background: 'rgba(30,30,50,0.8)', color: '#fff', borderColor: '#667eea' }}
-                    onClick={() => {
-                      setAllNotesDialogOpen(true);
-                      fetchAllNotes();
-                    }}
-                  >
-                    View All Notes
-                  </Button>
-                  
-                  <ToggleButtonGroup
-                    value={searchMode}
-                    exclusive
-                    onChange={(_, newMode) => {
-                      if (newMode !== null) {
-                        setSearchMode(newMode);
-                        setSearchResults([]); // Clear results when switching modes
-                        setSearchTags([]); // Clear tags when switching modes
-                      }
-                    }}
-                    sx={{ 
-                      mb: 3,
-                      '& .MuiToggleButton-root': {
-                        borderRadius: 2,
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        px: 2,
-                        py: 1,
-                        fontSize: '0.875rem',
-                        background: 'rgba(60, 60, 80, 0.8)',
-                        color: '#e0e0e0',
-                        border: '1px solid rgba(102, 126, 234, 0.3)',
-                        '&:hover': {
-                          background: 'rgba(80, 80, 100, 0.9)',
-                          color: '#ffffff'
-                        },
-                        '&.Mui-selected': {
-                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                          color: 'white'
-                        }
-                      }
-                    }}
-                    fullWidth
-                    size="small"
-                  >
-                    <ToggleButton value="text">Text Search</ToggleButton>
-                    <ToggleButton value="prompt">Prompt Search</ToggleButton>
-                  </ToggleButtonGroup>
-                  
-                  <TextField
-                    label="Search query"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    fullWidth
-                    sx={{ 
-                      mb: 3,
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        background: 'rgba(40, 40, 60, 0.8)',
-                        color: '#ffffff',
-                        '& fieldset': {
-                          borderColor: 'rgba(102, 126, 234, 0.3)'
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#667eea'
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#667eea',
-                          borderWidth: 2
-                        }
-                      },
-                      '& .MuiInputLabel-root': {
-                        color: '#b0b0b0'
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#667eea'
-                      }
-                    }}
-                    placeholder={searchMode === 'text' ? "Search for specific text..." : "Describe what you're looking for..."}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Button
-                            onClick={handleSearch}
-                            disabled={searchLoading || (!searchQuery.trim() && searchTags.length === 0)}
-                            sx={{ 
-                              minWidth: 'auto',
-                              borderRadius: 2,
-                              background: searchLoading || (!searchQuery.trim() && searchTags.length === 0) ? 'rgba(80, 80, 100, 0.5)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                              color: 'white',
-                              '&:hover': {
-                                background: searchLoading || (!searchQuery.trim() && searchTags.length === 0) ? 'rgba(80, 80, 100, 0.5)' : 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
-                              }
-                            }}
-                          >
-                            {searchLoading ? <CircularProgress size={20} color="inherit" /> : <SearchIcon />}
-                          </Button>
-                          <IconButton
-                            onClick={handleMicClick}
-                            sx={{
-                              ml: 1,
-                              color: isListening ? '#ff5252' : '#b0b0b0',
-                              background: isListening ? 'rgba(255,82,82,0.1)' : 'transparent',
-                              borderRadius: 2,
-                              border: isListening ? '1px solid #ff5252' : '1px solid rgba(102, 126, 234, 0.3)',
-                              transition: 'all 0.2s',
-                            }}
-                            aria-label={isListening ? 'Stop listening' : 'Start voice input'}
-                          >
-                            {isListening ? <MicOffIcon /> : <MicIcon />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  />
-                  
-                  {/* Tag Input Section for Prompt Search */}
-                  {searchMode === 'prompt' && (
-                    <Box sx={{ mb: 3 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <TextField
-                          label="Add tags"
-                          value={tagInput}
-                          onChange={e => setTagInput(e.target.value)}
-                          size="small"
-                          sx={{ 
-                            flex: 1,
-                            mr: 1,
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: 2,
-                              background: 'rgba(40, 40, 60, 0.8)',
-                              color: '#ffffff',
-                              '& fieldset': {
-                                borderColor: 'rgba(102, 126, 234, 0.3)'
-                              },
-                              '&:hover fieldset': {
-                                borderColor: '#667eea'
-                              },
-                              '&.Mui-focused fieldset': {
-                                borderColor: '#667eea',
-                                borderWidth: 2
-                              }
-                            },
-                            '& .MuiInputLabel-root': {
-                              color: '#b0b0b0'
-                            },
-                            '& .MuiInputLabel-root.Mui-focused': {
-                              color: '#667eea'
-                            }
-                          }}
-                          placeholder="Enter tag name..."
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter' && tagInput.trim()) {
-                              const newTag = tagInput.trim().replace(/^#/, '');
-                              if (newTag && !searchTags.includes(newTag)) {
-                                setSearchTags([...searchTags, newTag]);
-                                setTagInput('');
-                              }
-                            }
-                          }}
-                        />
-                        <Button
-                          onClick={() => {
-                            if (tagInput.trim()) {
-                              const newTag = tagInput.trim().replace(/^#/, '');
-                              if (newTag && !searchTags.includes(newTag)) {
-                                setSearchTags([...searchTags, newTag]);
-                                setTagInput('');
-                              }
-                            }
-                          }}
-                          disabled={!tagInput.trim() || searchTags.includes(tagInput.trim().replace(/^#/, ''))}
-                          sx={{
-                            borderRadius: 2,
-                            background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
-                            color: 'white',
-                            '&:hover': {
-                              background: 'linear-gradient(135deg, #43a047 0%, #5cb85c 100%)'
-                            }
-                          }}
-                        >
-                          <AddIcon />
-                        </Button>
-                      </Box>
-                      
-                      {searchTags.length > 0 && (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {searchTags.map((tag, index) => (
-                            <Chip
-                              key={index}
-                              label={`#${tag}`}
-                              onDelete={() => setSearchTags(searchTags.filter((_, i) => i !== index))}
-                              sx={{
-                                background: 'rgba(102, 126, 234, 0.2)',
-                                color: '#667eea',
-                                border: '1px solid rgba(102, 126, 234, 0.3)',
-                                '& .MuiChip-deleteIcon': {
-                                  color: '#667eea',
-                                  '&:hover': {
-                                    color: '#ff5252'
-                                  }
-                                }
-                              }}
-                            />
-                          ))}
-                        </Box>
-                      )}
-                    </Box>
-                  )}
-                  
-                  {searchResults.length > 0 && (
-                    <Box sx={{ mt: 3 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Typography variant="h6" fontWeight={600} sx={{ color: '#667eea', flex: 1 }}>
-                          Results ({searchResults.length})
-                        </Typography>
-                        {selectedNotes.length > 0 && (
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            sx={{ ml: 2, borderRadius: 2, fontWeight: 600 }}
-                            onClick={() => setBatchTagDialogOpen(true)}
-                          >
-                            Batch Tag
-                          </Button>
-                        )}
-                      </Box>
-                      <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                          <thead>
-                            <tr style={{ background: 'rgba(102,126,234,0.08)' }}>
-                              <th></th>
-                              <th style={{ color: '#b0b0b0', fontWeight: 600, textAlign: 'left' }}>Name</th>
-                              <th style={{ color: '#b0b0b0', fontWeight: 600 }}>Type</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {searchResults.map((result, index) => (
-                              <tr key={index} style={{ background: selectedNotes.includes(result.name) ? 'rgba(102,126,234,0.15)' : 'transparent' }}>
-                                <td>
-                                  <Checkbox
-                                    checked={selectedNotes.includes(result.name)}
-                                    onChange={e => {
-                                      setSelectedNotes(sel =>
-                                        e.target.checked
-                                          ? [...sel, result.name]
-                                          : sel.filter(n => n !== result.name)
-                                      );
-                                    }}
-                                    size="small"
-                                  />
-                                </td>
-                                <td style={{ fontWeight: 700, color: '#fff', textAlign: 'left' }}>
-                                  <Button
-                                    onClick={() => handleOpenInObsidian(result.name, result.type)}
-                                    sx={{ 
-                                      textTransform: 'none', 
-                                      color: '#667eea', 
-                                      fontWeight: 700, 
-                                      p: 0, 
-                                      minWidth: 'auto',
-                                      textDecoration: 'underline',
-                                      textAlign: 'left',
-                                      justifyContent: 'flex-start',
-                                      maxWidth: '200px',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      whiteSpace: 'nowrap',
-                                      '&:hover': {
-                                        background: 'transparent',
-                                        color: '#8b9dc3'
-                                      }
-                                    }}
-                                  >
-                                    {result.name}
-                                  </Button>
-                                  {result.external && <Chip label="EXTERN" color="warning" size="small" sx={{ ml: 1 }} />}
-                                  {searchMode === 'prompt' && result.reason && (
-                                    <Typography 
-                                      variant="caption" 
-                                      sx={{ 
-                                        display: 'block', 
-                                        color: '#b0b0b0', 
-                                        mt: 0.5, 
-                                        fontStyle: 'italic',
-                                        maxWidth: '300px',
-                                        whiteSpace: 'normal',
-                                        wordWrap: 'break-word'
-                                      }}
-                                    >
-                                      {result.reason}
-                                    </Typography>
-                                  )}
-                                </td>
-                                <td>
-                                  <Chip label={result.type} size="small" color={result.type === 'idea' ? 'success' : 'info'} />
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </Box>
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
-            </Box>
-            
-            <Box sx={{ width: { xs: '100%', md: 300 } }}>
-              <Card elevation={8} sx={{ 
-                borderRadius: 3,
-                background: 'rgba(30, 30, 50, 0.95)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(102, 126, 234, 0.3)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
-              }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h5" gutterBottom fontWeight={700} sx={{ 
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    backgroundClip: 'text',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    mb: 3
+                    mb: 2
                   }}>
                     Statistics
                   </Typography>
-                  <Box sx={{ mt: 2, p: 2, borderRadius: 2, background: 'rgba(102, 126, 234, 0.1)', mb: 3, border: '1px solid rgba(102, 126, 234, 0.2)' }}>
+                  <Box sx={{ mt: 1, p: 1.5, borderRadius: 2, background: 'rgba(102, 126, 234, 0.1)', mb: 2, border: '1px solid rgba(102, 126, 234, 0.2)' }}>
                     <Typography variant="h3" color="primary" fontWeight={800} sx={{ 
                       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                       backgroundClip: 'text',
@@ -1053,7 +1010,7 @@ function App() {
                       Total Notes
                     </Typography>
                   </Box>
-                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(76, 175, 80, 0.1)', mb: 3, border: '1px solid rgba(76, 175, 80, 0.2)' }}>
+                  <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: 'rgba(76, 175, 80, 0.1)', mb: 2, border: '1px solid rgba(76, 175, 80, 0.2)' }}>
                     <Typography variant="h4" color="success.main" fontWeight={700} sx={{ 
                       background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
                       backgroundClip: 'text',
@@ -1066,7 +1023,7 @@ function App() {
                       Ideas
                     </Typography>
                   </Box>
-                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(33, 150, 243, 0.1)', mb: 3, border: '1px solid rgba(33, 150, 243, 0.2)' }}>
+                  <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: 'rgba(33, 150, 243, 0.1)', mb: 2, border: '1px solid rgba(33, 150, 243, 0.2)' }}>
                     <Typography variant="h4" color="info.main" fontWeight={700} sx={{ 
                       background: 'linear-gradient(135deg, #2196f3 0%, #42a5f5 100%)',
                       backgroundClip: 'text',
@@ -1079,7 +1036,7 @@ function App() {
                       Pieces
                     </Typography>
                   </Box>
-                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(255, 152, 0, 0.1)', border: '1px solid rgba(255, 152, 0, 0.2)' }}>
+                  <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: 'rgba(255, 152, 0, 0.1)', border: '1px solid rgba(255, 152, 0, 0.2)' }}>
                     <Typography variant="h4" color="warning.main" fontWeight={700} sx={{ 
                       background: 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)',
                       backgroundClip: 'text',
@@ -1092,7 +1049,7 @@ function App() {
                       Connections Made
                     </Typography>
                   </Box>
-                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(255, 193, 7, 0.1)', mb: 3, border: '1px solid rgba(255, 193, 7, 0.2)' }}>
+                  <Box sx={{ mt: 2, p: 1.5, borderRadius: 2, background: 'rgba(255, 193, 7, 0.1)', mb: 2, border: '1px solid rgba(255, 193, 7, 0.2)' }}>
                     <Typography variant="h4" color="warning.main" fontWeight={700} sx={{ 
                       background: 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)',
                       backgroundClip: 'text',
