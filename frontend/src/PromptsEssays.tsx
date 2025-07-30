@@ -209,232 +209,227 @@ function PromptsEssays() {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4, minHeight: 'calc(100vh - 64px)' }}>
-      <Typography variant="h3" gutterBottom fontWeight={700} sx={{ 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        backgroundClip: 'text',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        mb: 4
-      }}>
-        Prompts & Essays
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h3" fontWeight={700} sx={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          backgroundClip: 'text',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent'
+        }}>
+          Prompts & Essays
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setPromptDialogOpen(true)}
+          sx={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            borderRadius: 2,
+            fontWeight: 600,
+            '&:hover': {
+              background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+              transform: 'scale(1.05)'
+            }
+          }}
+        >
+          Add Prompt
+        </Button>
+      </Box>
 
-      <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
-        {/* Main Content Area */}
-        <Box sx={{ flex: 1 }}>
-          <Card elevation={8} sx={{ 
-            borderRadius: 3,
-            background: 'rgba(30, 30, 50, 0.95)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(102, 126, 234, 0.3)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
+      {/* Grid Layout */}
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' },
+        gap: 3,
+        maxHeight: 'calc(100vh - 200px)',
+        overflow: 'auto'
+      }}>
+        {prompts.length === 0 ? (
+          <Box sx={{ 
+            gridColumn: '1 / -1', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            py: 8,
+            color: '#b0b0b0'
           }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h5" fontWeight={700} sx={{ 
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent'
-                }}>
-                  Your Prompts & Essays
-                </Typography>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={() => setPromptDialogOpen(true)}
-                  sx={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    borderRadius: 2,
-                    fontWeight: 600,
-                    '&:hover': {
-                      background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                      transform: 'scale(1.05)'
-                    }
-                  }}
-                >
-                  Add Prompt
-                </Button>
-              </Box>
-              
-              <Box sx={{ maxHeight: '70vh', overflow: 'auto' }}>
-                {prompts.length === 0 ? (
-                  <Typography variant="body2" color="#b0b0b0" align="center" sx={{ py: 4, fontStyle: 'italic' }}>
-                    No prompts yet. Click "Add Prompt" to get started.
+            <Typography variant="h6" sx={{ mb: 2, fontStyle: 'italic' }}>
+              No prompts yet
+            </Typography>
+            <Typography variant="body2" sx={{ textAlign: 'center' }}>
+              Click "Add Prompt" to get started with your first prompt and essay
+            </Typography>
+          </Box>
+        ) : (
+          prompts.map((prompt) => (
+            <Card key={prompt.id} sx={{ 
+              height: 'fit-content',
+              borderRadius: 3,
+              background: 'rgba(30, 30, 50, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(102, 126, 234, 0.3)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)',
+                border: '1px solid rgba(102, 126, 234, 0.5)'
+              },
+              transition: 'all 0.3s ease'
+            }}>
+              <CardContent sx={{ p: 3 }}>
+                {/* Header */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                  <Typography variant="h6" fontWeight={600} sx={{ 
+                    color: '#ffffff',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    lineHeight: 1.3,
+                    flex: 1,
+                    mr: 1
+                  }}>
+                    {prompt.title}
                   </Typography>
-                ) : (
-                  prompts.map((prompt) => (
-                    <Card key={prompt.id} sx={{ 
-                      mb: 3,
-                      borderRadius: 3,
-                      background: 'rgba(40, 40, 60, 0.8)',
-                      border: '1px solid rgba(102, 126, 234, 0.2)',
-                      '&:hover': {
-                        background: 'rgba(50, 50, 70, 0.9)',
-                        transform: 'translateY(-2px)',
-                        boxShadow: '0 8px 25px rgba(0,0,0,0.3)'
-                      }
-                    }}>
-                      <CardContent sx={{ p: 3 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                          <Typography variant="h6" fontWeight={600} sx={{ flex: 1, color: '#ffffff' }}>
-                            {prompt.title}
-                          </Typography>
-                          <IconButton 
-                            onClick={() => deletePrompt(prompt.id)}
-                            size="small"
-                            color="error"
-                            sx={{ color: '#ff5252' }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                        
-                        <Typography variant="body2" sx={{ mb: 2, color: '#e0e0e0', lineHeight: 1.6 }}>
-                          {prompt.prompt}
-                        </Typography>
-                        
-                        {prompt.essay_link && (
-                          <Box sx={{ mb: 2, p: 2, borderRadius: 2, background: 'rgba(20, 20, 40, 0.8)' }}>
-                            <Typography variant="caption" color="#b0b0b0" sx={{ display: 'block', mb: 1 }}>
-                              Essay Link:
-                            </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Typography variant="body2" sx={{ wordBreak: 'break-all', color: '#e0e0e0', flex: 1 }}>
-                                {prompt.essay_link}
-                              </Typography>
-                              <IconButton 
-                                size="small"
-                                onClick={() => copyToClipboard(prompt.essay_link)}
-                                sx={{ color: '#b0b0b0' }}
-                              >
-                                <ContentCopyIcon fontSize="small" />
-                              </IconButton>
-                            </Box>
-                          </Box>
-                        )}
-                        
-                        {/* Drafts Section */}
-                        <Box sx={{ mb: 2 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                            <Typography variant="subtitle2" color="#b0b0b0">
-                              Drafts ({prompt.drafts?.length || 0})
-                            </Typography>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => {
-                                setSelectedPromptId(prompt.id);
-                                setDraftDialogOpen(true);
-                              }}
-                              sx={{
-                                borderColor: 'rgba(102, 126, 234, 0.5)',
-                                color: '#e0e0e0',
-                                '&:hover': {
-                                  borderColor: '#667eea',
-                                  background: 'rgba(102, 126, 234, 0.1)'
-                                }
-                              }}
-                            >
-                              Add Draft
-                            </Button>
-                          </Box>
-                          
-                          {prompt.drafts && prompt.drafts.length > 0 && (
-                            <Box sx={{ ml: 1 }}>
-                              {prompt.drafts.map((draft: any) => (
-                                <Card key={draft.id} sx={{ mb: 1, p: 2, backgroundColor: 'rgba(20, 20, 40, 0.8)', border: '1px solid rgba(102, 126, 234, 0.1)', borderRadius: 2 }}>
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                    <Box sx={{ flex: 1 }}>
-                                      <Typography variant="body2" fontWeight={500} sx={{ color: '#ffffff', mb: 1 }}>
-                                        {draft.title}
-                                      </Typography>
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Typography variant="caption" sx={{ wordBreak: 'break-all', color: '#e0e0e0', flex: 1 }}>
-                                          {draft.link}
-                                        </Typography>
-                                        <IconButton 
-                                          size="small"
-                                          onClick={() => copyToClipboard(draft.link)}
-                                          sx={{ color: '#b0b0b0' }}
-                                        >
-                                          <ContentCopyIcon fontSize="small" />
-                                        </IconButton>
-                                      </Box>
-                                    </Box>
-                                    
-                                    <Box sx={{ display: 'flex', gap: 1 }}>
-                                      <IconButton
-                                        size="small"
-                                        onClick={() => deleteDraft(prompt.id, draft.id)}
-                                        sx={{ color: '#ff5252' }}
-                                      >
-                                        <DeleteIcon fontSize="small" />
-                                      </IconButton>
-                                    </Box>
-                                  </Box>
-                                </Card>
-                              ))}
-                            </Box>
-                          )}
-                        </Box>
-                        
-                        {/* Action Buttons */}
-                        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<SearchIcon />}
-                            onClick={() => handleSearchPrompt(prompt.prompt)}
-                            sx={{
-                              borderColor: 'rgba(102, 126, 234, 0.5)',
-                              color: '#e0e0e0',
-                              '&:hover': {
-                                borderColor: '#667eea',
-                                background: 'rgba(102, 126, 234, 0.1)'
-                              }
-                            }}
-                          >
-                            Search
-                          </Button>
-                          
-                          {!prompt.backed_up && (
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => {
-                                // This would need to be handled by the parent component
-                                // For now, just show a message
-                                setSuccess('Use the main page to add this to your vault');
-                              }}
-                              sx={{
-                                borderColor: 'rgba(102, 126, 234, 0.5)',
-                                color: '#e0e0e0',
-                                '&:hover': {
-                                  borderColor: '#667eea',
-                                  background: 'rgba(102, 126, 234, 0.1)'
-                                }
-                              }}
-                            >
-                              Add to Vault
-                            </Button>
-                          )}
-                        </Box>
-                        
-                        {prompt.backed_up && prompt.note_name && (
-                          <Typography variant="caption" color="#4caf50" sx={{ display: 'block', mt: 1 }}>
-                            ✓ Stored as: {prompt.note_name}
-                          </Typography>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))
+                  <IconButton 
+                    onClick={() => deletePrompt(prompt.id)}
+                    size="small"
+                    sx={{ 
+                      color: '#ff5252',
+                      '&:hover': { background: 'rgba(255, 82, 82, 0.1)' }
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+                
+                {/* Prompt Content */}
+                <Typography variant="body2" sx={{ 
+                  mb: 2, 
+                  color: '#e0e0e0', 
+                  lineHeight: 1.5,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: 'vertical',
+                  minHeight: '4.5em'
+                }}>
+                  {prompt.prompt}
+                </Typography>
+                
+                {/* Essay Link */}
+                {prompt.essay_link && (
+                  <Box sx={{ mb: 2, p: 1.5, borderRadius: 2, background: 'rgba(20, 20, 40, 0.8)' }}>
+                    <Typography variant="caption" color="#b0b0b0" sx={{ display: 'block', mb: 0.5 }}>
+                      Essay Link:
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Typography variant="body2" sx={{ 
+                        wordBreak: 'break-all', 
+                        color: '#e0e0e0',
+                        fontSize: '0.75rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        flex: 1
+                      }}>
+                        {prompt.essay_link}
+                      </Typography>
+                      <IconButton 
+                        size="small"
+                        onClick={() => copyToClipboard(prompt.essay_link)}
+                        sx={{ color: '#b0b0b0', p: 0.5 }}
+                      >
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Box>
                 )}
-              </Box>
-            </CardContent>
-          </Card>
-        </Box>
+                
+                {/* Drafts Count */}
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="#b0b0b0">
+                    Drafts: {prompt.drafts?.length || 0}
+                  </Typography>
+                  {prompt.drafts && prompt.drafts.length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                      {prompt.drafts.slice(0, 2).map((draft: any) => (
+                        <Box key={draft.id} sx={{ 
+                          p: 1, 
+                          mb: 0.5, 
+                          borderRadius: 1, 
+                          backgroundColor: 'rgba(20, 20, 40, 0.8)', 
+                          border: '1px solid rgba(102, 126, 234, 0.1)' 
+                        }}>
+                          <Typography variant="caption" fontWeight={500} sx={{ color: '#ffffff', display: 'block' }}>
+                            {draft.title}
+                          </Typography>
+                        </Box>
+                      ))}
+                      {prompt.drafts.length > 2 && (
+                        <Typography variant="caption" color="#b0b0b0">
+                          +{prompt.drafts.length - 2} more drafts
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+                </Box>
+                
+                {/* Action Buttons */}
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<SearchIcon />}
+                    onClick={() => handleSearchPrompt(prompt.prompt)}
+                    sx={{
+                      borderColor: 'rgba(102, 126, 234, 0.5)',
+                      color: '#e0e0e0',
+                      fontSize: '0.75rem',
+                      '&:hover': {
+                        borderColor: '#667eea',
+                        background: 'rgba(102, 126, 234, 0.1)'
+                      }
+                    }}
+                  >
+                    Search
+                  </Button>
+                  
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      setSelectedPromptId(prompt.id);
+                      setDraftDialogOpen(true);
+                    }}
+                    sx={{
+                      borderColor: 'rgba(76, 175, 80, 0.5)',
+                      color: '#e0e0e0',
+                      fontSize: '0.75rem',
+                      '&:hover': {
+                        borderColor: '#4caf50',
+                        background: 'rgba(76, 175, 80, 0.1)'
+                      }
+                    }}
+                  >
+                    Add Draft
+                  </Button>
+                </Box>
+                
+                {/* Status */}
+                {prompt.backed_up && prompt.note_name && (
+                  <Typography variant="caption" color="#4caf50" sx={{ display: 'block', mt: 1 }}>
+                    ✓ Stored as: {prompt.note_name}
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          ))
+        )}
       </Box>
 
       {/* Add Prompt Dialog */}
