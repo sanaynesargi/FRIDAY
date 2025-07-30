@@ -223,6 +223,31 @@ function PromptsEssays() {
     }
   };
 
+  const handleOpenInObsidian = (noteName: string, noteType: string) => {
+    const prefix = noteType === 'idea' ? 'Idea - ' : 'Piece - ';
+    const fileName = `${prefix}${noteName}.md`;
+    const vaultPath = localStorage.getItem('obsidianVaultPath');
+    if (!vaultPath) {
+      setError('Please set your Obsidian vault path in the main page');
+      return;
+    }
+    const fullPath = `${vaultPath}/${fileName}`;
+    window.location.href = `obsidian://open?path=${encodeURIComponent(fullPath)}`;
+  };
+
+  const formatUrl = (url: string) => {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname + urlObj.pathname;
+    } catch {
+      return url.length > 30 ? url.substring(0, 30) + '...' : url;
+    }
+  };
+
+  const openUrl = (url: string) => {
+    window.open(url, '_blank');
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 4, minHeight: 'calc(100vh - 64px)' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -394,13 +419,38 @@ function PromptsEssays() {
                           backgroundColor: 'rgba(20, 20, 40, 0.8)', 
                           border: '1px solid rgba(102, 126, 234, 0.1)' 
                         }}>
-                          <Typography variant="caption" fontWeight={500} sx={{ color: '#ffffff', display: 'block' }}>
+                          <Typography 
+                            variant="caption" 
+                            fontWeight={500} 
+                            sx={{ 
+                              color: '#667eea', 
+                              display: 'block',
+                              cursor: 'pointer',
+                              textDecoration: 'underline',
+                              '&:hover': { color: '#8b9dc3' }
+                            }}
+                            onClick={() => handleOpenInObsidian(draft.title, 'piece')}
+                          >
                             {draft.title}
                           </Typography>
                           {expandedCards.has(prompt.id) && (
                             <Box sx={{ mt: 0.5 }}>
-                              <Typography variant="caption" sx={{ color: '#e0e0e0', display: 'block', mb: 0.5 }}>
-                                {draft.link}
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  color: '#e0e0e0', 
+                                  display: 'block', 
+                                  mb: 0.5,
+                                  cursor: 'pointer',
+                                  textDecoration: 'underline',
+                                  '&:hover': { color: '#ffffff' },
+                                  wordBreak: 'break-all',
+                                  fontSize: '0.7rem'
+                                }}
+                                onClick={() => openUrl(draft.link)}
+                                title={draft.link}
+                              >
+                                {formatUrl(draft.link)}
                               </Typography>
                               <Box sx={{ display: 'flex', gap: 0.5 }}>
                                 <IconButton 
@@ -437,11 +487,36 @@ function PromptsEssays() {
                               backgroundColor: 'rgba(20, 20, 40, 0.8)', 
                               border: '1px solid rgba(102, 126, 234, 0.1)' 
                             }}>
-                              <Typography variant="caption" fontWeight={500} sx={{ color: '#ffffff', display: 'block' }}>
+                              <Typography 
+                                variant="caption" 
+                                fontWeight={500} 
+                                sx={{ 
+                                  color: '#667eea', 
+                                  display: 'block',
+                                  cursor: 'pointer',
+                                  textDecoration: 'underline',
+                                  '&:hover': { color: '#8b9dc3' }
+                                }}
+                                onClick={() => handleOpenInObsidian(draft.title, 'piece')}
+                              >
                                 {draft.title}
                               </Typography>
-                              <Typography variant="caption" sx={{ color: '#e0e0e0', display: 'block', mb: 0.5 }}>
-                                {draft.link}
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  color: '#e0e0e0', 
+                                  display: 'block', 
+                                  mb: 0.5,
+                                  cursor: 'pointer',
+                                  textDecoration: 'underline',
+                                  '&:hover': { color: '#ffffff' },
+                                  wordBreak: 'break-all',
+                                  fontSize: '0.7rem'
+                                }}
+                                onClick={() => openUrl(draft.link)}
+                                title={draft.link}
+                              >
+                                {formatUrl(draft.link)}
                               </Typography>
                               <Box sx={{ display: 'flex', gap: 0.5 }}>
                                 <IconButton 
