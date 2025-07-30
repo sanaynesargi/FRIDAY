@@ -436,26 +436,42 @@ function PromptsEssays() {
             }}
           />
           {folders.map((folder) => (
-            <Chip
-              key={folder.id}
-              label={folder.name}
-              onClick={() => setSelectedFolder(folder.id)}
-              color={selectedFolder === folder.id ? 'primary' : 'default'}
-              sx={{
-                borderRadius: 2,
-                fontWeight: 600,
-                background: selectedFolder === folder.id 
-                  ? folder.color
-                  : 'rgba(40, 40, 60, 0.8)',
-                color: selectedFolder === folder.id ? 'white' : '#e0e0e0',
-                border: `1px solid ${folder.color}40`,
-                '&:hover': {
-                  background: selectedFolder === folder.id
+            <Box key={folder.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Chip
+                label={folder.name}
+                onClick={() => setSelectedFolder(folder.id)}
+                color={selectedFolder === folder.id ? 'primary' : 'default'}
+                sx={{
+                  borderRadius: 2,
+                  fontWeight: 600,
+                  background: selectedFolder === folder.id 
                     ? folder.color
-                    : `${folder.color}20`
-                }
-              }}
-            />
+                    : 'rgba(40, 40, 60, 0.8)',
+                  color: selectedFolder === folder.id ? 'white' : '#e0e0e0',
+                  border: `1px solid ${folder.color}40`,
+                  '&:hover': {
+                    background: selectedFolder === folder.id
+                      ? folder.color
+                      : `${folder.color}20`
+                  }
+                }}
+              />
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteFolder(folder.id);
+                }}
+                sx={{ 
+                  color: '#ff5252', 
+                  '&:hover': { background: 'rgba(255, 82, 82, 0.1)' },
+                  width: 24,
+                  height: 24
+                }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Box>
           ))}
         </Box>
       </Box>
@@ -1089,48 +1105,6 @@ function PromptsEssays() {
           >
             Create Folder
           </Button>
-
-          <Divider sx={{ my: 3 }} />
-
-          <Typography variant="h6" sx={{ mb: 2 }}>
-            Existing Folders
-          </Typography>
-          {folders.length === 0 ? (
-            <Typography variant="body2" sx={{ color: '#b0b0b0' }}>
-              No folders yet. Create one to organize your prompts!
-            </Typography>
-          ) : (
-            <List>
-              {folders.map((folder) => (
-                <ListItem key={folder.id} sx={{ p: 1, mb: 0.5 }}>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: folder.color }}>
-                          •
-                        </Typography>
-                        {folder.name}
-                      </Box>
-                    }
-                    secondary={
-                      <Typography variant="caption" color="#b0b0b0">
-                        {folder.color}
-                      </Typography>
-                    }
-                  />
-                  <ListItemSecondaryAction>
-                    <IconButton
-                      size="small"
-                      onClick={() => deleteFolder(folder.id)}
-                      sx={{ color: '#ff5252', '&:hover': { background: 'rgba(255, 82, 82, 0.1)' } }}
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))}
-            </List>
-          )}
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
           <Button onClick={() => setFolderDialogOpen(false)} sx={{ 
