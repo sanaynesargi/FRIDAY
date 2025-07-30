@@ -1192,6 +1192,30 @@ function PromptsEssays() {
                 },
                 '& .MuiInputLabel-root.Mui-focused': {
                   color: '#667eea'
+                },
+                '& .MuiSelect-icon': {
+                  color: '#b0b0b0'
+                }
+              }}
+              MenuProps={{
+                PaperProps: {
+                  sx: {
+                    background: 'rgba(40, 40, 60, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(102, 126, 234, 0.3)',
+                    '& .MuiMenuItem-root': {
+                      color: '#ffffff',
+                      '&:hover': {
+                        background: 'rgba(102, 126, 234, 0.2)'
+                      },
+                      '&.Mui-selected': {
+                        background: 'rgba(102, 126, 234, 0.3)',
+                        '&:hover': {
+                          background: 'rgba(102, 126, 234, 0.4)'
+                        }
+                      }
+                    }
+                  }
                 }
               }}
             >
