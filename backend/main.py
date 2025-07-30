@@ -433,7 +433,14 @@ def load_prompts():
     try:
         if os.path.exists(PROMPTS_FILE):
             with open(PROMPTS_FILE, 'r') as f:
-                return json.load(f)
+                data = json.load(f)
+                # Handle both old format (list) and new format (dict with prompts key)
+                if isinstance(data, list):
+                    return data
+                elif isinstance(data, dict) and "prompts" in data:
+                    return data["prompts"]
+                else:
+                    return []
         return []
     except Exception as e:
         print(f"Error loading prompts: {e}")
@@ -441,15 +448,18 @@ def load_prompts():
 
 def save_prompts(prompts):
     try:
+        # Save in new format with prompts key
+        data = {"prompts": prompts}
         with open(PROMPTS_FILE, 'w') as f:
-            json.dump(prompts, f, indent=2)
+            json.dump(data, f, indent=2)
     except Exception as e:
         print(f"Error saving prompts: {e}")
         raise HTTPException(status_code=500, detail=f"Error saving prompts: {e}")
 
 @app.get("/prompts")
 def get_prompts():
-    return {"prompts": load_prompts()}
+    prompts = load_prompts()
+    return {"prompts": prompts}
 
 @app.post("/prompts")
 def create_prompt(prompt: dict):
@@ -524,15 +534,51 @@ def update_prompt(prompt_id: str, update_data: dict):
 
 @app.delete("/prompts/{prompt_id}")
 def delete_prompt(prompt_id: str):
-    prompts = load_prompts()
-    prompts = [p for p in prompts if p["id"] != prompt_id]
-    save_prompts(prompts)
-    return {"status": "deleted"}
+    try:
+        # Load existing prompts
+        try:
+            with open("prompts.json", "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+        
+        # Find and remove prompt
+        prompts = data.get("prompts", [])
+        prompt_to_delete = None
+        for prompt in prompts:
+            if prompt["id"] == prompt_id:
+                prompt_to_delete = prompt
+                break
+        
+        if not prompt_to_delete:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+        
+        prompts.remove(prompt_to_delete)
+        data["prompts"] = prompts
+        
+        # Save back to file
+        with open("prompts.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return {"message": "Prompt deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/prompts/{prompt_id}/drafts")
 def create_draft(prompt_id: str, req: DraftRequest):
     try:
-        prompts = load_prompts()
+        # Load existing prompts
+        try:
+            with open("prompts.json", "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+        
+        # Find prompt and add draft
+        prompts = data.get("prompts", [])
+        prompt_found = False
         for prompt in prompts:
             if prompt["id"] == prompt_id:
                 new_draft = {
@@ -543,9 +589,19 @@ def create_draft(prompt_id: str, req: DraftRequest):
                     "note_name": ""
                 }
                 prompt["drafts"].append(new_draft)
-                save_prompts(prompts)
-                return {"draft": new_draft}
-        raise HTTPException(status_code=404, detail="Prompt not found")
+                prompt_found = True
+                break
+        
+        if not prompt_found:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+        
+        # Save back to file
+        with open("prompts.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return {"draft": new_draft}
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error creating draft: {e}")
         print(f"Request data: {req}")
@@ -553,26 +609,74 @@ def create_draft(prompt_id: str, req: DraftRequest):
 
 @app.put("/prompts/{prompt_id}/drafts/{draft_id}")
 def update_draft(prompt_id: str, draft_id: str, req: PromptUpdateRequest):
-    prompts = load_prompts()
-    for prompt in prompts:
-        if prompt["id"] == prompt_id:
-            for draft in prompt["drafts"]:
-                if draft["id"] == draft_id:
-                    draft["backed_up"] = req.backed_up
-                    draft["note_name"] = req.note_name
-                    save_prompts(prompts)
-                    return {"draft": draft}
-    raise HTTPException(status_code=404, detail="Draft not found")
+    try:
+        # Load existing prompts
+        try:
+            with open("prompts.json", "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+        
+        # Find prompt and update draft
+        prompts = data.get("prompts", [])
+        draft_found = False
+        for prompt in prompts:
+            if prompt["id"] == prompt_id:
+                for draft in prompt["drafts"]:
+                    if draft["id"] == draft_id:
+                        draft["backed_up"] = req.backed_up
+                        draft["note_name"] = req.note_name
+                        draft_found = True
+                        break
+                if draft_found:
+                    break
+        
+        if not draft_found:
+            raise HTTPException(status_code=404, detail="Draft not found")
+        
+        # Save back to file
+        with open("prompts.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return {"message": "Draft updated successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/prompts/{prompt_id}/drafts/{draft_id}")
 def delete_draft(prompt_id: str, draft_id: str):
-    prompts = load_prompts()
-    for prompt in prompts:
-        if prompt["id"] == prompt_id:
-            prompt["drafts"] = [d for d in prompt["drafts"] if d["id"] != draft_id]
-            save_prompts(prompts)
-            return {"status": "deleted"}
-    raise HTTPException(status_code=404, detail="Prompt or draft not found")
+    try:
+        # Load existing prompts
+        try:
+            with open("prompts.json", "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+        
+        # Find prompt and remove draft
+        prompts = data.get("prompts", [])
+        draft_found = False
+        for prompt in prompts:
+            if prompt["id"] == prompt_id:
+                original_length = len(prompt["drafts"])
+                prompt["drafts"] = [d for d in prompt["drafts"] if d["id"] != draft_id]
+                if len(prompt["drafts"]) < original_length:
+                    draft_found = True
+                break
+        
+        if not draft_found:
+            raise HTTPException(status_code=404, detail="Draft not found")
+        
+        # Save back to file
+        with open("prompts.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return {"message": "Draft deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --- Idea Boards Management ---
 IDEA_BOARDS_FILE = "idea_boards.json"
