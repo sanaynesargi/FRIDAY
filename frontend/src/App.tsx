@@ -453,7 +453,7 @@ function App() {
       ) : currentPage === 'prompts-essays' ? (
         <PromptsEssays />
       ) : (
-        <Container maxWidth="xl" sx={{ py: 3, minHeight: 'calc(100vh - 64px)' }}>
+        <Container disableGutters sx={{ py: 3, minHeight: 'calc(100vh - 64px)', px: 2 }}>
           <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
             <Box sx={{ flex: 1 }}>
               <Paper elevation={8} sx={{ 
