@@ -25,13 +25,16 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Collapse
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SearchIcon from '@mui/icons-material/Search';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 const BACKEND_URL = 'http://localhost:8000';
 
@@ -58,6 +61,7 @@ function PromptsEssays() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   
   // Dialog states
   const [promptDialogOpen, setPromptDialogOpen] = useState(false);
@@ -71,6 +75,18 @@ function PromptsEssays() {
   useEffect(() => {
     fetchPrompts();
   }, []);
+
+  const toggleCardExpansion = (promptId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(promptId)) {
+        newSet.delete(promptId);
+      } else {
+        newSet.add(promptId);
+      }
+      return newSet;
+    });
+  };
 
   const fetchPrompts = async () => {
     try {
@@ -286,7 +302,7 @@ function PromptsEssays() {
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     display: '-webkit-box',
-                    WebkitLineClamp: 2,
+                    WebkitLineClamp: expandedCards.has(prompt.id) ? 'unset' : 2,
                     WebkitBoxOrient: 'vertical',
                     lineHeight: 1.3,
                     flex: 1,
@@ -294,16 +310,28 @@ function PromptsEssays() {
                   }}>
                     {prompt.title}
                   </Typography>
-                  <IconButton 
-                    onClick={() => deletePrompt(prompt.id)}
-                    size="small"
-                    sx={{ 
-                      color: '#ff5252',
-                      '&:hover': { background: 'rgba(255, 82, 82, 0.1)' }
-                    }}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    <IconButton 
+                      onClick={() => toggleCardExpansion(prompt.id)}
+                      size="small"
+                      sx={{ 
+                        color: '#b0b0b0',
+                        '&:hover': { background: 'rgba(102, 126, 234, 0.1)' }
+                      }}
+                    >
+                      {expandedCards.has(prompt.id) ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                    </IconButton>
+                    <IconButton 
+                      onClick={() => deletePrompt(prompt.id)}
+                      size="small"
+                      sx={{ 
+                        color: '#ff5252',
+                        '&:hover': { background: 'rgba(255, 82, 82, 0.1)' }
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
                 </Box>
                 
                 {/* Prompt Content */}
@@ -314,9 +342,9 @@ function PromptsEssays() {
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   display: '-webkit-box',
-                  WebkitLineClamp: 3,
+                  WebkitLineClamp: expandedCards.has(prompt.id) ? 'unset' : 3,
                   WebkitBoxOrient: 'vertical',
-                  minHeight: '4.5em'
+                  minHeight: expandedCards.has(prompt.id) ? 'auto' : '4.5em'
                 }}>
                   {prompt.prompt}
                 </Typography>
@@ -332,9 +360,9 @@ function PromptsEssays() {
                         wordBreak: 'break-all', 
                         color: '#e0e0e0',
                         fontSize: '0.75rem',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        overflow: expandedCards.has(prompt.id) ? 'visible' : 'hidden',
+                        textOverflow: expandedCards.has(prompt.id) ? 'unset' : 'ellipsis',
+                        whiteSpace: expandedCards.has(prompt.id) ? 'normal' : 'nowrap',
                         flex: 1
                       }}>
                         {prompt.essay_link}
@@ -350,13 +378,14 @@ function PromptsEssays() {
                   </Box>
                 )}
                 
-                {/* Drafts Count */}
+                {/* Drafts Section */}
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="caption" color="#b0b0b0">
                     Drafts: {prompt.drafts?.length || 0}
                   </Typography>
                   {prompt.drafts && prompt.drafts.length > 0 && (
                     <Box sx={{ mt: 1 }}>
+                      {/* Show first 2 drafts always */}
                       {prompt.drafts.slice(0, 2).map((draft: any) => (
                         <Box key={draft.id} sx={{ 
                           p: 1, 
@@ -368,9 +397,75 @@ function PromptsEssays() {
                           <Typography variant="caption" fontWeight={500} sx={{ color: '#ffffff', display: 'block' }}>
                             {draft.title}
                           </Typography>
+                          {expandedCards.has(prompt.id) && (
+                            <Box sx={{ mt: 0.5 }}>
+                              <Typography variant="caption" sx={{ color: '#e0e0e0', display: 'block', mb: 0.5 }}>
+                                {draft.link}
+                              </Typography>
+                              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                <IconButton 
+                                  size="small"
+                                  onClick={() => copyToClipboard(draft.link)}
+                                  sx={{ color: '#b0b0b0', p: 0.5 }}
+                                >
+                                  <ContentCopyIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => deleteDraft(prompt.id, draft.id)}
+                                  sx={{ color: '#ff5252', p: 0.5 }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            </Box>
+                          )}
                         </Box>
                       ))}
-                      {prompt.drafts.length > 2 && (
+                      
+                      {/* Show additional drafts when expanded */}
+                      {expandedCards.has(prompt.id) && prompt.drafts.length > 2 && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="caption" color="#b0b0b0" sx={{ display: 'block', mb: 1 }}>
+                            Additional Drafts:
+                          </Typography>
+                          {prompt.drafts.slice(2).map((draft: any) => (
+                            <Box key={draft.id} sx={{ 
+                              p: 1, 
+                              mb: 0.5, 
+                              borderRadius: 1, 
+                              backgroundColor: 'rgba(20, 20, 40, 0.8)', 
+                              border: '1px solid rgba(102, 126, 234, 0.1)' 
+                            }}>
+                              <Typography variant="caption" fontWeight={500} sx={{ color: '#ffffff', display: 'block' }}>
+                                {draft.title}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#e0e0e0', display: 'block', mb: 0.5 }}>
+                                {draft.link}
+                              </Typography>
+                              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                <IconButton 
+                                  size="small"
+                                  onClick={() => copyToClipboard(draft.link)}
+                                  sx={{ color: '#b0b0b0', p: 0.5 }}
+                                >
+                                  <ContentCopyIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => deleteDraft(prompt.id, draft.id)}
+                                  sx={{ color: '#ff5252', p: 0.5 }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            </Box>
+                          ))}
+                        </Box>
+                      )}
+                      
+                      {/* Show count when collapsed */}
+                      {!expandedCards.has(prompt.id) && prompt.drafts.length > 2 && (
                         <Typography variant="caption" color="#b0b0b0">
                           +{prompt.drafts.length - 2} more drafts
                         </Typography>
