@@ -82,6 +82,13 @@ function PromptsEssays() {
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [newFolder, setNewFolder] = useState({ name: '', color: '#667eea' });
 
+  // Predefined colors for random assignment
+  const folderColors = [
+    '#667eea', '#4caf50', '#ff9800', '#f44336', '#9c27b0', '#00bcd4',
+    '#e91e63', '#3f51b5', '#009688', '#ff5722', '#795548', '#607d8b',
+    '#8bc34a', '#ffc107', '#9e9e9e', '#673ab7', '#ff4081', '#2196f3'
+  ];
+
   // Load prompts and folders on component mount
   useEffect(() => {
     fetchPrompts();
@@ -124,12 +131,29 @@ function PromptsEssays() {
     }
   };
 
+  const getRandomColor = () => {
+    const usedColors = new Set(folders.map(f => f.color));
+    const availableColors = folderColors.filter(color => !usedColors.has(color));
+    
+    if (availableColors.length === 0) {
+      // If all colors are used, return a random one from the original list
+      return folderColors[Math.floor(Math.random() * folderColors.length)];
+    }
+    
+    return availableColors[Math.floor(Math.random() * availableColors.length)];
+  };
+
   const createFolder = async () => {
     try {
+      const folderData = {
+        name: newFolder.name,
+        color: getRandomColor()
+      };
+      
       const res = await fetch(`${BACKEND_URL}/folders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newFolder)
+        body: JSON.stringify(folderData)
       });
       if (res.ok) {
         setFolderDialogOpen(false);
@@ -408,8 +432,10 @@ function PromptsEssays() {
 
       {/* Grid Layout */}
       <Box sx={{ 
-        display: 'grid', 
-        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' },
+        display: 'grid',
+        gridTemplateColumns: selectedFolder === 'all' 
+          ? { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }
+          : { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
         gap: 3,
         maxHeight: 'calc(100vh - 200px)',
         overflow: 'auto'
@@ -1005,45 +1031,6 @@ function PromptsEssays() {
             }}
             placeholder="Enter folder name"
           />
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <InputLabel id="folder-color-label" sx={{ color: '#b0b0b0' }}>Folder Color</InputLabel>
-            <Select
-              labelId="folder-color-label"
-              value={newFolder.color}
-              label="Folder Color"
-              onChange={(e) => setNewFolder({ ...newFolder, color: e.target.value as string })}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  background: 'rgba(40, 40, 60, 0.8)',
-                  color: '#ffffff',
-                  '& fieldset': {
-                    borderColor: 'rgba(102, 126, 234, 0.3)'
-                  },
-                  '&:hover fieldset': {
-                    borderColor: '#667eea'
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#667eea',
-                    borderWidth: 2
-                  }
-                },
-                '& .MuiInputLabel-root': {
-                  color: '#b0b0b0'
-                },
-                '& .MuiInputLabel-root.Mui-focused': {
-                  color: '#667eea'
-                }
-              }}
-            >
-              <MenuItem value="#667eea">Blue</MenuItem>
-              <MenuItem value="#4caf50">Green</MenuItem>
-              <MenuItem value="#ff9800">Orange</MenuItem>
-              <MenuItem value="#f44336">Red</MenuItem>
-              <MenuItem value="#9c27b0">Purple</MenuItem>
-              <MenuItem value="#00bcd4">Cyan</MenuItem>
-            </Select>
-          </FormControl>
           <Button
             variant="contained"
             onClick={createFolder}
