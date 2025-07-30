@@ -1038,26 +1038,73 @@ function App() {
                     WebkitTextFillColor: 'transparent',
                     mb: 3
                   }}>
-                    Quick Links
+                    Statistics
                   </Typography>
-                  
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    sx={{ mb: 2, borderRadius: 2, fontWeight: 600, background: 'rgba(30,30,50,0.8)', color: '#fff', borderColor: '#667eea' }}
-                    onClick={() => setCurrentPage('prompts-essays')}
-                  >
-                    Manage Prompts & Essays
-                  </Button>
-                  
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    sx={{ mb: 2, borderRadius: 2, fontWeight: 600, background: 'rgba(30,30,50,0.8)', color: '#fff', borderColor: '#667eea' }}
-                    onClick={() => setCurrentPage('idea-boards')}
-                  >
-                    Idea Boards
-                  </Button>
+                  <Box sx={{ mt: 2, p: 2, borderRadius: 2, background: 'rgba(102, 126, 234, 0.1)', mb: 3, border: '1px solid rgba(102, 126, 234, 0.2)' }}>
+                    <Typography variant="h3" color="primary" fontWeight={800} sx={{ 
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}>
+                      {stats.totalNotes}
+                    </Typography>
+                    <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
+                      Total Notes
+                    </Typography>
+                  </Box>
+                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(76, 175, 80, 0.1)', mb: 3, border: '1px solid rgba(76, 175, 80, 0.2)' }}>
+                    <Typography variant="h4" color="success.main" fontWeight={700} sx={{ 
+                      background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}>
+                      {stats.ideas}
+                    </Typography>
+                    <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
+                      Ideas
+                    </Typography>
+                  </Box>
+                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(33, 150, 243, 0.1)', mb: 3, border: '1px solid rgba(33, 150, 243, 0.2)' }}>
+                    <Typography variant="h4" color="info.main" fontWeight={700} sx={{ 
+                      background: 'linear-gradient(135deg, #2196f3 0%, #42a5f5 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}>
+                      {stats.pieces}
+                    </Typography>
+                    <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
+                      Pieces
+                    </Typography>
+                  </Box>
+                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(255, 152, 0, 0.1)', border: '1px solid rgba(255, 152, 0, 0.2)' }}>
+                    <Typography variant="h4" color="warning.main" fontWeight={700} sx={{ 
+                      background: 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}>
+                      {stats.connections}
+                    </Typography>
+                    <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
+                      Connections Made
+                    </Typography>
+                  </Box>
+                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(255, 193, 7, 0.1)', mb: 3, border: '1px solid rgba(255, 193, 7, 0.2)' }}>
+                    <Typography variant="h4" color="warning.main" fontWeight={700} sx={{ 
+                      background: 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent'
+                    }}>
+                      {stats.externalPieces}
+                    </Typography>
+                    <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
+                      External Pieces
+                    </Typography>
+                  </Box>
                 </CardContent>
               </Card>
             </Box>

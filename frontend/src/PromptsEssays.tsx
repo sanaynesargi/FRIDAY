@@ -410,8 +410,7 @@ function PromptsEssays() {
                   </Typography>
                   {prompt.drafts && prompt.drafts.length > 0 && (
                     <Box sx={{ mt: 1 }}>
-                      {/* Show first 2 drafts always */}
-                      {prompt.drafts.slice(0, 2).map((draft: any) => (
+                      {prompt.drafts.map((draft: any) => (
                         <Box key={draft.id} sx={{ 
                           p: 1, 
                           mb: 0.5, 
@@ -472,79 +471,6 @@ function PromptsEssays() {
                           )}
                         </Box>
                       ))}
-                      
-                      {/* Show additional drafts when expanded */}
-                      {expandedCards.has(prompt.id) && prompt.drafts.length > 2 && (
-                        <Box sx={{ mt: 1 }}>
-                          <Typography variant="caption" color="#b0b0b0" sx={{ display: 'block', mb: 1 }}>
-                            Additional Drafts:
-                          </Typography>
-                          {prompt.drafts.slice(2).map((draft: any) => (
-                            <Box key={draft.id} sx={{ 
-                              p: 1, 
-                              mb: 0.5, 
-                              borderRadius: 1, 
-                              backgroundColor: 'rgba(20, 20, 40, 0.8)', 
-                              border: '1px solid rgba(102, 126, 234, 0.1)' 
-                            }}>
-                              <Typography 
-                                variant="caption" 
-                                fontWeight={500} 
-                                sx={{ 
-                                  color: '#667eea', 
-                                  display: 'block',
-                                  cursor: 'pointer',
-                                  textDecoration: 'underline',
-                                  '&:hover': { color: '#8b9dc3' }
-                                }}
-                                onClick={() => handleOpenInObsidian(draft.title, 'piece')}
-                              >
-                                {draft.title}
-                              </Typography>
-                              <Typography 
-                                variant="caption" 
-                                sx={{ 
-                                  color: '#e0e0e0', 
-                                  display: 'block', 
-                                  mb: 0.5,
-                                  cursor: 'pointer',
-                                  textDecoration: 'underline',
-                                  '&:hover': { color: '#ffffff' },
-                                  wordBreak: 'break-all',
-                                  fontSize: '0.7rem'
-                                }}
-                                onClick={() => openUrl(draft.link)}
-                                title={draft.link}
-                              >
-                                {formatUrl(draft.link)}
-                              </Typography>
-                              <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                <IconButton 
-                                  size="small"
-                                  onClick={() => copyToClipboard(draft.link)}
-                                  sx={{ color: '#b0b0b0', p: 0.5 }}
-                                >
-                                  <ContentCopyIcon fontSize="small" />
-                                </IconButton>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => deleteDraft(prompt.id, draft.id)}
-                                  sx={{ color: '#ff5252', p: 0.5 }}
-                                >
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Box>
-                            </Box>
-                          ))}
-                        </Box>
-                      )}
-                      
-                      {/* Show count when collapsed */}
-                      {!expandedCards.has(prompt.id) && prompt.drafts.length > 2 && (
-                        <Typography variant="caption" color="#b0b0b0">
-                          +{prompt.drafts.length - 2} more drafts
-                        </Typography>
-                      )}
                     </Box>
                   )}
                 </Box>
