@@ -41,13 +41,15 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 import IdeaBoards from './IdeaBoards';
+import PromptsEssays from './PromptsEssays';
 
 const BACKEND_URL = 'http://localhost:8000'; // Change if backend runs elsewhere
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'main' | 'idea-boards'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'idea-boards' | 'prompts-essays'>('main');
   const [type, setType] = useState<'idea' | 'piece'>('idea');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
@@ -68,13 +70,6 @@ function App() {
   const [searchMode, setSearchMode] = useState<'text' | 'prompt'>('text');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [prompts, setPrompts] = useState<any[]>([]);
-  const [promptDialogOpen, setPromptDialogOpen] = useState(false);
-  const [editingPrompt, setEditingPrompt] = useState<any>(null);
-  const [newPrompt, setNewPrompt] = useState({ title: '', prompt: '', essay_link: '' });
-  const [draftDialogOpen, setDraftDialogOpen] = useState(false);
-  const [selectedPromptId, setSelectedPromptId] = useState('');
-  const [newDraft, setNewDraft] = useState({ title: '', link: '' });
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
   const [vaultPath, setVaultPath] = useState<string>(() => localStorage.getItem('obsidianVaultPath') || '');
@@ -172,7 +167,6 @@ function App() {
   // Fetch stats on component mount
   useEffect(() => {
     fetchStats();
-    fetchPrompts();
   }, []);
 
   useEffect(() => {
@@ -263,140 +257,44 @@ function App() {
     }
   };
 
-  const fetchPrompts = async () => {
+  const fetchAllNotes = async () => {
+    setAllNotesLoading(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/prompts`);
+      const res = await fetch(`${BACKEND_URL}/all_notes`);
       if (res.ok) {
         const data = await res.json();
-        setPrompts(data.prompts || []);
+        setAllNotes(data.notes || []);
       }
     } catch (err) {
-      console.error('Failed to fetch prompts:', err);
+      setError('Failed to fetch all notes');
+    } finally {
+      setAllNotesLoading(false);
     }
   };
 
-  const createPrompt = async () => {
+  const handleBatchTagAll = async () => {
+    const tags = batchTagsAll.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
+    if (!tags.length) {
+      return;
+    };
     try {
-      const res = await fetch(`${BACKEND_URL}/prompts`, {
+      const res = await fetch(`${BACKEND_URL}/batch_tag`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newPrompt)
+        body: JSON.stringify({ note_names: selectedAllNotes, tags })
       });
       if (res.ok) {
-        setPromptDialogOpen(false);
-        setNewPrompt({ title: '', prompt: '', essay_link: '' });
-        fetchPrompts();
-        setSuccess('Prompt created successfully!');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error creating prompt');
-    }
-  };
-
-  const updatePromptBackup = async (promptId: string, backedUp: boolean, noteName: string = '') => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/prompts/${promptId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: promptId, backed_up: backedUp, note_name: noteName })
-      });
-      if (res.ok) {
-        fetchPrompts();
-        setSuccess('Prompt updated successfully!');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error updating prompt');
-    }
-  };
-
-  const deletePrompt = async (promptId: string) => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/prompts/${promptId}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        fetchPrompts();
-        setSuccess('Prompt deleted successfully!');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error deleting prompt');
-    }
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setSuccess('Copied to clipboard!');
-  };
-
-  const highlightText = (text: string, query: string) => {
-    if (!query.trim()) return text;
-    
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    const parts = text.split(regex);
-    
-    return parts.map((part, index) => {
-      if (regex.test(part)) {
-        return (
-          <span key={index} style={{ backgroundColor: '#ffeb3b', fontWeight: 'bold' }}>
-            {part}
-          </span>
-        );
-      }
-      return part;
-    });
-  };
-
-  const createDraft = async () => {
-    try {
-      console.log('Creating draft with data:', newDraft);
-      const res = await fetch(`${BACKEND_URL}/prompts/${selectedPromptId}/drafts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newDraft)
-      });
-      if (res.ok) {
-        setDraftDialogOpen(false);
-        setNewDraft({ title: '', link: '' });
-        fetchPrompts();
-        setSuccess('Draft created successfully!');
+        console.log(await res.json())
+        setBatchTagAllDialogOpen(false);
+        setBatchTagsAll('');
+        setSelectedAllNotes([]);
+        setSuccess('Tags added!');
+        fetchAllNotes();
       } else {
-        const errorData = await res.text();
-        console.error('Draft creation failed:', res.status, errorData);
-        setError(`Failed to create draft: ${res.status} - ${errorData}`);
+        setError('Failed to add tags');
       }
-    } catch (err: any) {
-      console.error('Draft creation error:', err);
-      setError(err.message || 'Error creating draft');
-    }
-  };
-
-  const updateDraftBackup = async (promptId: string, draftId: string, backedUp: boolean, noteName: string = '') => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/prompts/${promptId}/drafts/${draftId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: draftId, backed_up: backedUp, note_name: noteName })
-      });
-      if (res.ok) {
-        fetchPrompts();
-        setSuccess('Draft updated successfully!');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error updating draft');
-    }
-  };
-
-  const deleteDraft = async (promptId: string, draftId: string) => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/prompts/${promptId}/drafts/${draftId}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        fetchPrompts();
-        setSuccess('Draft deleted successfully!');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error deleting draft');
+    } catch (err) {
+      setError('Failed to add tags');
     }
   };
 
@@ -468,45 +366,22 @@ function App() {
     }
   };
 
-  const fetchAllNotes = async () => {
-    setAllNotesLoading(true);
-    try {
-      const res = await fetch(`${BACKEND_URL}/all_notes`);
-      if (res.ok) {
-        const data = await res.json();
-        setAllNotes(data.notes || []);
+  const highlightText = (text: string, query: string) => {
+    if (!query.trim()) return text;
+    
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => {
+      if (regex.test(part)) {
+        return (
+          <span key={index} style={{ backgroundColor: '#ffeb3b', fontWeight: 'bold' }}>
+            {part}
+          </span>
+        );
       }
-    } catch (err) {
-      setError('Failed to fetch all notes');
-    } finally {
-      setAllNotesLoading(false);
-    }
-  };
-
-  const handleBatchTagAll = async () => {
-    const tags = batchTagsAll.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
-    if (!tags.length) {
-      return;
-    };
-    try {
-      const res = await fetch(`${BACKEND_URL}/batch_tag`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ note_names: selectedAllNotes, tags })
-      });
-      if (res.ok) {
-        console.log(await res.json())
-        setBatchTagAllDialogOpen(false);
-        setBatchTagsAll('');
-        setSelectedAllNotes([]);
-        setSuccess('Tags added!');
-        fetchAllNotes();
-      } else {
-        setError('Failed to add tags');
-      }
-    } catch (err) {
-      setError('Failed to add tags');
-    }
+      return part;
+    });
   };
 
   return (
@@ -558,6 +433,12 @@ function App() {
               icon={<AccountTreeIcon />}
               iconPosition="start"
             />
+            <Tab 
+              value="prompts-essays" 
+              label="Prompts & Essays" 
+              icon={<DescriptionIcon />}
+              iconPosition="start"
+            />
           </Tabs>
         </Toolbar>
       </AppBar>
@@ -565,6 +446,8 @@ function App() {
       {/* Conditional Rendering */}
       {currentPage === 'idea-boards' ? (
         <IdeaBoards />
+      ) : currentPage === 'prompts-essays' ? (
+        <PromptsEssays />
       ) : (
         <Container maxWidth="xl" sx={{ py: 4, minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
           <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', md: 'row' } }}>
@@ -1144,261 +1027,6 @@ function App() {
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
               }}>
                 <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h5" fontWeight={700} sx={{ 
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}>
-                      Prompts & Essays
-                    </Typography>
-                    <IconButton 
-                      onClick={() => setPromptDialogOpen(true)}
-                      color="primary"
-                      size="small"
-                      sx={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        color: 'white',
-                        '&:hover': {
-                          background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-                          transform: 'scale(1.1)'
-                        }
-                      }}
-                    >
-                      <AddIcon />
-                    </IconButton>
-                  </Box>
-                  
-                  <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-                    {prompts.length === 0 ? (
-                      <Typography variant="body2" color="#b0b0b0" align="center" sx={{ py: 4, fontStyle: 'italic' }}>
-                        No prompts yet. Click + to add one.
-                      </Typography>
-                    ) : (
-                      prompts.map((prompt) => (
-                        <Card key={prompt.id} sx={{ 
-                          mb: 2,
-                          borderRadius: 2,
-                          background: 'rgba(40, 40, 60, 0.8)',
-                          border: '1px solid rgba(102, 126, 234, 0.2)',
-                          '&:hover': {
-                            background: 'rgba(50, 50, 70, 0.9)',
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 8px 25px rgba(0,0,0,0.3)'
-                          }
-                        }}>
-                          <CardContent sx={{ p: 2 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                              <Typography variant="h6" fontWeight={600} sx={{ flex: 1, color: '#ffffff' }}>
-                                {prompt.title}
-                              </Typography>
-                              <IconButton 
-                                onClick={() => deletePrompt(prompt.id)}
-                                size="small"
-                                color="error"
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </Box>
-                            
-                            <Typography variant="body2" sx={{ mb: 1, color: '#e0e0e0' }}>
-                              {prompt.prompt}
-                            </Typography>
-                            
-                            {prompt.essay_link && (
-                              <Box sx={{ mb: 1 }}>
-                                <Typography variant="caption" color="#b0b0b0">
-                                  Essay Link:
-                                </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <Typography variant="body2" sx={{ wordBreak: 'break-all', color: '#e0e0e0' }}>
-                                    {prompt.essay_link}
-                                  </Typography>
-                                  <IconButton 
-                                    size="small"
-                                    onClick={() => copyToClipboard(prompt.essay_link)}
-                                    sx={{ color: '#b0b0b0' }}
-                                  >
-                                    <ContentCopyIcon fontSize="small" />
-                                  </IconButton>
-                                </Box>
-                              </Box>
-                            )}
-                            
-                            {/* Drafts Section */}
-                            <Box sx={{ mb: 1 }}>
-                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                                <Typography variant="caption" color="#b0b0b0">
-                                  Drafts ({prompt.drafts?.length || 0}):
-                                </Typography>
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  onClick={() => {
-                                    setSelectedPromptId(prompt.id);
-                                    setDraftDialogOpen(true);
-                                  }}
-                                  sx={{
-                                    borderColor: 'rgba(102, 126, 234, 0.5)',
-                                    color: '#e0e0e0',
-                                    '&:hover': {
-                                      borderColor: '#667eea',
-                                      background: 'rgba(102, 126, 234, 0.1)'
-                                    }
-                                  }}
-                                >
-                                  Add Draft
-                                </Button>
-                              </Box>
-                              
-                              {prompt.drafts && prompt.drafts.length > 0 && (
-                                <Box sx={{ ml: 1 }}>
-                                  {prompt.drafts.map((draft: any) => (
-                                    <Card key={draft.id} sx={{ mb: 1, p: 1, backgroundColor: 'rgba(20, 20, 40, 0.8)', border: '1px solid rgba(102, 126, 234, 0.1)' }}>
-                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <Box sx={{ flex: 1 }}>
-                                          <Typography variant="body2" fontWeight={500} sx={{ color: '#ffffff' }}>
-                                            {draft.title}
-                                          </Typography>
-                                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                                            <Typography variant="caption" sx={{ wordBreak: 'break-all', color: '#e0e0e0' }}>
-                                              {draft.link}
-                                            </Typography>
-                                            <IconButton 
-                                              size="small"
-                                              onClick={() => copyToClipboard(draft.link)}
-                                              sx={{ color: '#b0b0b0' }}
-                                            >
-                                              <ContentCopyIcon fontSize="small" />
-                                            </IconButton>
-                                          </Box>
-                                        </Box>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                          <FormControlLabel
-                                            control={
-                                              <Checkbox
-                                                checked={draft.backed_up}
-                                                onChange={(e) => updateDraftBackup(prompt.id, draft.id, e.target.checked, draft.note_name)}
-                                                size="small"
-                                                sx={{
-                                                  color: '#b0b0b0',
-                                                  '&.Mui-checked': {
-                                                    color: '#667eea'
-                                                  }
-                                                }}
-                                              />
-                                            }
-                                            label=""
-                                          />
-                                          <IconButton 
-                                            size="small"
-                                            color="error"
-                                            onClick={() => deleteDraft(prompt.id, draft.id)}
-                                          >
-                                            <DeleteIcon fontSize="small" />
-                                          </IconButton>
-                                        </Box>
-                                      </Box>
-                                      
-                                      {draft.backed_up && draft.note_name && (
-                                        <Typography variant="caption" color="#4caf50">
-                                          ✓ Stored as: {draft.note_name}
-                                        </Typography>
-                                      )}
-                                    </Card>
-                                  ))}
-                                </Box>
-                              )}
-                            </Box>
-                            
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <FormControlLabel
-                                control={
-                                  <Checkbox
-                                    checked={prompt.backed_up}
-                                    onChange={(e) => updatePromptBackup(prompt.id, e.target.checked, prompt.note_name)}
-                                    size="small"
-                                    sx={{
-                                      color: '#b0b0b0',
-                                      '&.Mui-checked': {
-                                        color: '#667eea'
-                                      }
-                                    }}
-                                  />
-                                }
-                                label={<Typography variant="body2" sx={{ color: '#e0e0e0' }}>Backed up to Obsidian</Typography>}
-                              />
-                              
-                              <Box sx={{ display: 'flex', gap: 1 }}>
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  onClick={() => {
-                                    setSearchQuery(prompt.prompt);
-                                    setSearchMode('prompt');
-                                    handleSearch();
-                                  }}
-                                  startIcon={<SearchIcon />}
-                                  sx={{
-                                    borderColor: 'rgba(102, 126, 234, 0.5)',
-                                    color: '#e0e0e0',
-                                    '&:hover': {
-                                      borderColor: '#667eea',
-                                      background: 'rgba(102, 126, 234, 0.1)'
-                                    }
-                                  }}
-                                >
-                                  Search
-                                </Button>
-                                
-                                {!prompt.backed_up && (
-                                  <Button
-                                    size="small"
-                                    variant="outlined"
-                                    onClick={() => {
-                                      setNoteName(prompt.title);
-                                      setContent(prompt.prompt);
-                                      setType('piece');
-                                    }}
-                                    sx={{
-                                      borderColor: 'rgba(102, 126, 234, 0.5)',
-                                      color: '#e0e0e0',
-                                      '&:hover': {
-                                        borderColor: '#667eea',
-                                        background: 'rgba(102, 126, 234, 0.1)'
-                                      }
-                                    }}
-                                  >
-                                    Add to Vault
-                                  </Button>
-                                )}
-                              </Box>
-                            </Box>
-                            
-                            {prompt.backed_up && prompt.note_name && (
-                              <Typography variant="caption" color="#4caf50">
-                                ✓ Stored as: {prompt.note_name}
-                              </Typography>
-                            )}
-                          </CardContent>
-                        </Card>
-                      ))
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Box>
-            
-            <Box sx={{ width: { xs: '100%', md: 300 } }}>
-              <Card elevation={8} sx={{ 
-                borderRadius: 3,
-                background: 'rgba(30, 30, 50, 0.95)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(102, 126, 234, 0.3)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
-              }}>
-                <CardContent sx={{ p: 3 }}>
                   <Typography variant="h5" gutterBottom fontWeight={700} sx={{ 
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     backgroundClip: 'text',
@@ -1406,647 +1034,30 @@ function App() {
                     WebkitTextFillColor: 'transparent',
                     mb: 3
                   }}>
-                    Statistics
+                    Quick Links
                   </Typography>
-                  <Box sx={{ mt: 2, p: 2, borderRadius: 2, background: 'rgba(102, 126, 234, 0.1)', mb: 3, border: '1px solid rgba(102, 126, 234, 0.2)' }}>
-                    <Typography variant="h3" color="primary" fontWeight={800} sx={{ 
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}>
-                      {stats.totalNotes}
-                    </Typography>
-                    <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
-                      Total Notes
-                    </Typography>
-                  </Box>
-                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(76, 175, 80, 0.1)', mb: 3, border: '1px solid rgba(76, 175, 80, 0.2)' }}>
-                    <Typography variant="h4" color="success.main" fontWeight={700} sx={{ 
-                      background: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}>
-                      {stats.ideas}
-                    </Typography>
-                    <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
-                      Ideas
-                    </Typography>
-                  </Box>
-                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(33, 150, 243, 0.1)', mb: 3, border: '1px solid rgba(33, 150, 243, 0.2)' }}>
-                    <Typography variant="h4" color="info.main" fontWeight={700} sx={{ 
-                      background: 'linear-gradient(135deg, #2196f3 0%, #42a5f5 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}>
-                      {stats.pieces}
-                    </Typography>
-                    <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
-                      Pieces
-                    </Typography>
-                  </Box>
-                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(255, 152, 0, 0.1)', border: '1px solid rgba(255, 152, 0, 0.2)' }}>
-                    <Typography variant="h4" color="warning.main" fontWeight={700} sx={{ 
-                      background: 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}>
-                      {stats.connections}
-                    </Typography>
-                    <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
-                      Connections Made
-                    </Typography>
-                  </Box>
-                  <Box sx={{ mt: 3, p: 2, borderRadius: 2, background: 'rgba(255, 193, 7, 0.1)', mb: 3, border: '1px solid rgba(255, 193, 7, 0.2)' }}>
-                    <Typography variant="h4" color="warning.main" fontWeight={700} sx={{ 
-                      background: 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent'
-                    }}>
-                      {stats.externalPieces}
-                    </Typography>
-                    <Typography variant="body2" color="#b0b0b0" sx={{ fontWeight: 500 }}>
-                      External Pieces
-                    </Typography>
-                  </Box>
+                  
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    sx={{ mb: 2, borderRadius: 2, fontWeight: 600, background: 'rgba(30,30,50,0.8)', color: '#fff', borderColor: '#667eea' }}
+                    onClick={() => setCurrentPage('prompts-essays')}
+                  >
+                    Manage Prompts & Essays
+                  </Button>
+                  
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    sx={{ mb: 2, borderRadius: 2, fontWeight: 600, background: 'rgba(30,30,50,0.8)', color: '#fff', borderColor: '#667eea' }}
+                    onClick={() => setCurrentPage('idea-boards')}
+                  >
+                    Idea Boards
+                  </Button>
                 </CardContent>
               </Card>
             </Box>
           </Box>
-          
-          {/* Add Prompt Dialog */}
-          <Dialog open={promptDialogOpen} onClose={() => setPromptDialogOpen(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ 
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              fontWeight: 700
-            }}>
-              Add New Prompt
-            </DialogTitle>
-            <DialogContent sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <TextField
-                label="Title"
-                value={newPrompt.title}
-                onChange={(e) => setNewPrompt({ ...newPrompt, title: e.target.value })}
-                fullWidth
-                sx={{ 
-                  mb: 3, 
-                  mt: 1,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    background: 'rgba(40, 40, 60, 0.8)',
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(102, 126, 234, 0.3)'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#667eea'
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                      borderWidth: 2
-                    }
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: '#b0b0b0'
-                  },
-                  '& .MuiInputLabel-root.Mui-focused': {
-                    color: '#667eea'
-                  }
-                }}
-                placeholder="Enter prompt title"
-              />
-              <TextField
-                label="Prompt"
-                value={newPrompt.prompt}
-                onChange={(e) => setNewPrompt({ ...newPrompt, prompt: e.target.value })}
-                multiline
-                minRows={4}
-                fullWidth
-                sx={{ 
-                  mb: 3,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    background: 'rgba(40, 40, 60, 0.8)',
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(102, 126, 234, 0.3)'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#667eea'
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                      borderWidth: 2
-                    }
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: '#b0b0b0'
-                  },
-                  '& .MuiInputLabel-root.Mui-focused': {
-                    color: '#667eea'
-                  }
-                }}
-                placeholder="Enter your prompt"
-              />
-              <TextField
-                label="Essay Link (optional)"
-                value={newPrompt.essay_link}
-                onChange={(e) => setNewPrompt({ ...newPrompt, essay_link: e.target.value })}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    background: 'rgba(40, 40, 60, 0.8)',
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(102, 126, 234, 0.3)'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#667eea'
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                      borderWidth: 2
-                    }
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: '#b0b0b0'
-                  },
-                  '& .MuiInputLabel-root.Mui-focused': {
-                    color: '#667eea'
-                  }
-                }}
-                placeholder="Link to Google Docs, etc."
-              />
-            </DialogContent>
-            <DialogActions sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Button 
-                onClick={() => setPromptDialogOpen(false)}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 3,
-                  color: '#e0e0e0',
-                  '&:hover': {
-                    background: 'rgba(102, 126, 234, 0.1)'
-                  }
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={createPrompt} 
-                variant="contained"
-                disabled={!newPrompt.title.trim() || !newPrompt.prompt.trim()}
-                sx={{
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 3,
-                  color: '#ffffff',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
-                  },
-                  '&:disabled': {
-                    background: 'rgba(80, 80, 100, 0.5)',
-                    color: '#666666'
-                  }
-                }}
-              >
-                Create Prompt
-              </Button>
-            </DialogActions>
-          </Dialog>
-          
-          {/* Add Draft Dialog */}
-          <Dialog open={draftDialogOpen} onClose={() => setDraftDialogOpen(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ 
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              fontWeight: 700
-            }}>
-              Add New Draft
-            </DialogTitle>
-            <DialogContent sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <TextField
-                label="Draft Title"
-                value={newDraft.title}
-                onChange={(e) => setNewDraft({ ...newDraft, title: e.target.value })}
-                fullWidth
-                sx={{ 
-                  mb: 3, 
-                  mt: 1,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    background: 'rgba(40, 40, 60, 0.8)',
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(102, 126, 234, 0.3)'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#667eea'
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                      borderWidth: 2
-                    }
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: '#b0b0b0'
-                  },
-                  '& .MuiInputLabel-root.Mui-focused': {
-                    color: '#667eea'
-                  }
-                }}
-                placeholder="Enter draft title"
-              />
-              <TextField
-                label="Draft Link"
-                value={newDraft.link}
-                onChange={(e) => setNewDraft({ ...newDraft, link: e.target.value })}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    background: 'rgba(40, 40, 60, 0.8)',
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(102, 126, 234, 0.3)'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#667eea'
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                      borderWidth: 2
-                    }
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: '#b0b0b0'
-                  },
-                  '& .MuiInputLabel-root.Mui-focused': {
-                    color: '#667eea'
-                  }
-                }}
-                placeholder="Link to Google Docs, etc."
-              />
-            </DialogContent>
-            <DialogActions sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Button 
-                onClick={() => setDraftDialogOpen(false)}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 3,
-                  color: '#e0e0e0',
-                  '&:hover': {
-                    background: 'rgba(102, 126, 234, 0.1)'
-                  }
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={createDraft} 
-                variant="contained"
-                disabled={!newDraft.title.trim() || !newDraft.link.trim()}
-                sx={{
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 3,
-                  color: '#ffffff',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
-                  },
-                  '&:disabled': {
-                    background: 'rgba(80, 80, 100, 0.5)',
-                    color: '#666666'
-                  }
-                }}
-              >
-                Create Draft
-              </Button>
-            </DialogActions>
-          </Dialog>
-          
-          {/* Vault Path Dialog */}
-          <Dialog open={vaultDialogOpen} onClose={() => setVaultDialogOpen(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ 
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              fontWeight: 700
-            }}>
-              Set Obsidian Vault Path
-            </DialogTitle>
-            <DialogContent sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Typography variant="body2" sx={{ mb: 2, color: '#e0e0e0' }}>
-                Enter the absolute path to your Obsidian vault (e.g., <code>/Users/yourname/ObsidianVault</code>). This is required to open notes directly in Obsidian.
-              </Typography>
-              <TextField
-                label="Vault Path"
-                value={vaultInput}
-                onChange={e => setVaultInput(e.target.value)}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    background: 'rgba(40, 40, 60, 0.8)',
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(102, 126, 234, 0.3)'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#667eea'
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                      borderWidth: 2
-                    }
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: '#b0b0b0'
-                  },
-                  '& .MuiInputLabel-root.Mui-focused': {
-                    color: '#667eea'
-                  }
-                }}
-                placeholder="/Users/yourname/ObsidianVault"
-              />
-            </DialogContent>
-            <DialogActions sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Button 
-                onClick={() => setVaultDialogOpen(false)}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 3,
-                  color: '#e0e0e0',
-                  '&:hover': {
-                    background: 'rgba(102, 126, 234, 0.1)'
-                  }
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSaveVaultPath} 
-                variant="contained"
-                disabled={!vaultInput.trim()}
-                sx={{
-                  borderRadius: 2,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  px: 3,
-                  color: '#ffffff',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
-                  },
-                  '&:disabled': {
-                    background: 'rgba(80, 80, 100, 0.5)',
-                    color: '#666666'
-                  }
-                }}
-              >
-                Save
-              </Button>
-            </DialogActions>
-          </Dialog>
-          
-          {/* Batch Tag Dialog */}
-          <Dialog open={batchTagDialogOpen} onClose={() => setBatchTagDialogOpen(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontWeight: 700 }}>
-              Batch Add Tags
-            </DialogTitle>
-            <DialogContent sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Typography variant="body2" sx={{ mb: 2, color: '#e0e0e0' }}>
-                Enter tags to add to the selected notes (comma separated, e.g. <code>#tag1, #tag2, #tag with spaces</code>):
-              </Typography>
-              <TextField
-                label="Tags"
-                value={batchTags}
-                onChange={e => setBatchTags(e.target.value)}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    background: 'rgba(40, 40, 60, 0.8)',
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(102, 126, 234, 0.3)'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#667eea'
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                      borderWidth: 2
-                    }
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: '#b0b0b0'
-                  },
-                  '& .MuiInputLabel-root.Mui-focused': {
-                    color: '#667eea'
-                  }
-                }}
-                placeholder="#tag1, #tag2, #tag with spaces"
-              />
-            </DialogContent>
-            <DialogActions sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Button onClick={() => setBatchTagDialogOpen(false)} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 3, color: '#e0e0e0', '&:hover': { background: 'rgba(102, 126, 234, 0.1)' } }}>
-                Cancel
-              </Button>
-              <Button onClick={handleBatchTag} variant="contained" disabled={!batchTags.trim()} sx={{ borderRadius: 2, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', textTransform: 'none', fontWeight: 600, px: 3, color: '#ffffff', '&:hover': { background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)' }, '&:disabled': { background: 'rgba(80, 80, 100, 0.5)', color: '#666666' } }}>
-                Add Tags
-              </Button>
-            </DialogActions>
-          </Dialog>
-          
-          {/* Note Viewer Dialog */}
-          <Dialog open={noteViewerOpen} onClose={() => setNoteViewerOpen(false)} maxWidth="md" fullWidth>
-            <DialogTitle sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontWeight: 700 }}>
-              {viewedNote?.name}
-            </DialogTitle>
-            <DialogContent sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Typography variant="body2" sx={{ color: '#b0b0b0', mb: 2 }}>
-                <b>Type:</b> {viewedNote?.type} | <b>Created:</b> {viewedNote?.created ? new Date(viewedNote.created * 1000).toLocaleString() : ''} | <b>Modified:</b> {viewedNote?.modified ? new Date(viewedNote.modified * 1000).toLocaleString() : ''} | <b>Words:</b> {viewedNote?.word_count} | <b>Connections:</b> {viewedNote?.num_connections} | <b>External:</b> {viewedNote?.external ? 'Yes' : 'No'}
-              </Typography>
-              <Box sx={{ whiteSpace: 'pre-wrap', color: '#fff', fontFamily: 'monospace', fontSize: '1rem', background: 'rgba(40,40,60,0.8)', borderRadius: 2, p: 2 }}>
-                {viewedNote?.content}
-              </Box>
-            </DialogContent>
-            <DialogActions sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Button onClick={() => setNoteViewerOpen(false)} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 3, color: '#e0e0e0', '&:hover': { background: 'rgba(102, 126, 234, 0.1)' } }}>
-                Close
-              </Button>
-            </DialogActions>
-          </Dialog>
-          
-          {/* All Notes Dialog */}
-          <Dialog open={allNotesDialogOpen} onClose={() => setAllNotesDialogOpen(false)} maxWidth="xl" fullWidth>
-            <DialogTitle sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontWeight: 700 }}>
-              All Notes
-            </DialogTitle>
-            <DialogContent sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              {allNotesLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
-                  <CircularProgress />
-                </Box>
-              ) : (
-                <>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6" fontWeight={600} sx={{ color: '#667eea', flex: 1 }}>
-                      Notes ({allNotes.length})
-                    </Typography>
-                    {selectedAllNotes.length > 0 && (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        sx={{ ml: 2, borderRadius: 2, fontWeight: 600 }}
-                        onClick={() => setBatchTagAllDialogOpen(true)}
-                      >
-                        Batch Tag
-                      </Button>
-                    )}
-                  </Box>
-                  <Box sx={{ maxHeight: 500, overflow: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ background: 'rgba(102,126,234,0.08)' }}>
-                          <th></th>
-                          <th style={{ color: '#b0b0b0', fontWeight: 600, textAlign: 'left' }}>Name</th>
-                          <th style={{ color: '#b0b0b0', fontWeight: 600 }}>Type</th>
-                          <th style={{ color: '#b0b0b0', fontWeight: 600 }}>Created</th>
-                          <th style={{ color: '#b0b0b0', fontWeight: 600 }}>Modified</th>
-                          <th style={{ color: '#b0b0b0', fontWeight: 600 }}>Words</th>
-                          <th style={{ color: '#b0b0b0', fontWeight: 600 }}>Connections</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {allNotes.map((note, index) => (
-                          <tr key={index} style={{ background: selectedAllNotes.includes(note.name) ? 'rgba(102,126,234,0.15)' : 'transparent' }}>
-                            <td>
-                              <Checkbox
-                                checked={selectedAllNotes.includes(note.name)}
-                                onChange={e => {
-                                  setSelectedAllNotes(sel =>
-                                    e.target.checked
-                                      ? [...sel, note.name]
-                                      : sel.filter(n => n !== note.name)
-                                  );
-                                }}
-                                size="small"
-                              />
-                            </td>
-                            <td style={{ fontWeight: 700, color: '#fff', textAlign: 'left' }}>
-                              <Button
-                                onClick={() => handleOpenInObsidian(note.name, note.type)}
-                                sx={{ 
-                                  textTransform: 'none', 
-                                  color: '#667eea', 
-                                  fontWeight: 700, 
-                                  p: 0, 
-                                  minWidth: 'auto',
-                                  textDecoration: 'underline',
-                                  textAlign: 'left',
-                                  justifyContent: 'flex-start',
-                                  maxWidth: '200px',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                  '&:hover': {
-                                    background: 'transparent',
-                                    color: '#8b9dc3'
-                                  }
-                                }}
-                              >
-                                {note.name}
-                              </Button>
-                              {note.external && <Chip label="EXTERN" color="warning" size="small" sx={{ ml: 1 }} />}
-                            </td>
-                            <td>
-                              <Chip label={note.type} size="small" color={note.type === 'idea' ? 'success' : 'info'} />
-                            </td>
-                            <td style={{ color: '#e0e0e0' }}>{note.created ? new Date(note.created * 1000).toLocaleString() : ''}</td>
-                            <td style={{ color: '#e0e0e0' }}>{note.modified ? new Date(note.modified * 1000).toLocaleString() : ''}</td>
-                            <td style={{ color: '#e0e0e0' }}>{note.word_count}</td>
-                            <td style={{ color: '#e0e0e0' }}>{note.num_connections}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </Box>
-                </>
-              )}
-            </DialogContent>
-            <DialogActions sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Button onClick={() => setAllNotesDialogOpen(false)} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 3, color: '#e0e0e0', '&:hover': { background: 'rgba(102, 126, 234, 0.1)' } }}>
-                Close
-              </Button>
-            </DialogActions>
-          </Dialog>
-          
-          {/* Batch Tag All Dialog */}
-          <Dialog open={batchTagAllDialogOpen} onClose={() => setBatchTagAllDialogOpen(false)} maxWidth="sm" fullWidth>
-            <DialogTitle sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontWeight: 700 }}>
-              Batch Add Tags (All Notes)
-            </DialogTitle>
-            <DialogContent sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Typography variant="body2" sx={{ mb: 2, color: '#e0e0e0' }}>
-                Enter tags to add to the selected notes (comma separated, e.g. <code>#tag1, #tag2, #tag with spaces</code>):
-              </Typography>
-              <TextField
-                label="Tags"
-                value={batchTagsAll}
-                onChange={e => setBatchTagsAll(e.target.value)}
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    background: 'rgba(40, 40, 60, 0.8)',
-                    color: '#ffffff',
-                    '& fieldset': {
-                      borderColor: 'rgba(102, 126, 234, 0.3)'
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#667eea'
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: '#667eea',
-                      borderWidth: 2
-                    }
-                  },
-                  '& .MuiInputLabel-root': {
-                    color: '#b0b0b0'
-                  },
-                  '& .MuiInputLabel-root.Mui-focused': {
-                    color: '#667eea'
-                  }
-                }}
-                placeholder="#tag1, #tag2, #tag with spaces"
-              />
-            </DialogContent>
-            <DialogActions sx={{ p: 3, background: 'rgba(30, 30, 50, 0.95)' }}>
-              <Button onClick={() => setBatchTagAllDialogOpen(false)} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, px: 3, color: '#e0e0e0', '&:hover': { background: 'rgba(102, 126, 234, 0.1)' } }}>
-                Cancel
-              </Button>
-              <Button onClick={async () => {await handleBatchTagAll()}} variant="contained" disabled={!batchTagsAll.trim()} sx={{ borderRadius: 2, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', textTransform: 'none', fontWeight: 600, px: 3, color: '#ffffff', '&:hover': { background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)' }, '&:disabled': { background: 'rgba(80, 80, 100, 0.5)', color: '#666666' } }}>
-                Add Tags
-              </Button>
-            </DialogActions>
-          </Dialog>
           
           <Snackbar
             open={!!success}
