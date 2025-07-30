@@ -436,42 +436,37 @@ function PromptsEssays() {
             }}
           />
           {folders.map((folder) => (
-            <Box key={folder.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Chip
-                label={folder.name}
-                onClick={() => setSelectedFolder(folder.id)}
-                color={selectedFolder === folder.id ? 'primary' : 'default'}
-                sx={{
-                  borderRadius: 2,
-                  fontWeight: 600,
-                  background: selectedFolder === folder.id 
+            <Chip
+              key={folder.id}
+              label={folder.name}
+              onClick={() => setSelectedFolder(folder.id)}
+              onDelete={(e) => {
+                e.stopPropagation();
+                deleteFolder(folder.id);
+              }}
+              color={selectedFolder === folder.id ? 'primary' : 'default'}
+              sx={{
+                borderRadius: 2,
+                fontWeight: 600,
+                background: selectedFolder === folder.id 
+                  ? folder.color
+                  : 'rgba(40, 40, 60, 0.8)',
+                color: selectedFolder === folder.id ? 'white' : '#e0e0e0',
+                border: `1px solid ${folder.color}40`,
+                '&:hover': {
+                  background: selectedFolder === folder.id
                     ? folder.color
-                    : 'rgba(40, 40, 60, 0.8)',
-                  color: selectedFolder === folder.id ? 'white' : '#e0e0e0',
-                  border: `1px solid ${folder.color}40`,
+                    : `${folder.color}20`
+                },
+                '& .MuiChip-deleteIcon': {
+                  color: '#ff5252',
                   '&:hover': {
-                    background: selectedFolder === folder.id
-                      ? folder.color
-                      : `${folder.color}20`
+                    background: 'rgba(255, 82, 82, 0.1)',
+                    color: '#ff5252'
                   }
-                }}
-              />
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  deleteFolder(folder.id);
-                }}
-                sx={{ 
-                  color: '#ff5252', 
-                  '&:hover': { background: 'rgba(255, 82, 82, 0.1)' },
-                  width: 24,
-                  height: 24
-                }}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </Box>
+                }
+              }}
+            />
           ))}
         </Box>
       </Box>
