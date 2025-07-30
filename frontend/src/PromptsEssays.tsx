@@ -81,6 +81,9 @@ function PromptsEssays() {
   const [newDraft, setNewDraft] = useState({ title: '', link: '' });
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [newFolder, setNewFolder] = useState({ name: '', color: '#667eea' });
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+  const [selectedPromptToMove, setSelectedPromptToMove] = useState<Prompt | null>(null);
+  const [targetFolder, setTargetFolder] = useState('');
 
   // Predefined colors for random assignment
   const folderColors = [
@@ -178,6 +181,33 @@ function PromptsEssays() {
     } catch (err: any) {
       setError(err.message || 'Error deleting folder');
     }
+  };
+
+  const movePrompt = async () => {
+    if (!selectedPromptToMove) return;
+    
+    try {
+      const res = await fetch(`${BACKEND_URL}/prompts/${selectedPromptToMove.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder: targetFolder })
+      });
+      if (res.ok) {
+        setMoveDialogOpen(false);
+        setSelectedPromptToMove(null);
+        setTargetFolder('');
+        fetchPrompts();
+        setSuccess('Prompt moved successfully!');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error moving prompt');
+    }
+  };
+
+  const handleMovePrompt = (prompt: Prompt) => {
+    setSelectedPromptToMove(prompt);
+    setTargetFolder(prompt.folder || '');
+    setMoveDialogOpen(true);
   };
 
   const createPrompt = async () => {
@@ -512,6 +542,16 @@ function PromptsEssays() {
                       }}
                     >
                       {expandedCards.has(prompt.id) ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                    </IconButton>
+                    <IconButton 
+                      onClick={() => handleMovePrompt(prompt)}
+                      size="small"
+                      sx={{ 
+                        color: '#b0b0b0',
+                        '&:hover': { background: 'rgba(102, 126, 234, 0.1)' }
+                      }}
+                    >
+                      <ContentCopyIcon fontSize="small" />
                     </IconButton>
                     <IconButton 
                       onClick={() => deletePrompt(prompt.id)}
@@ -1098,6 +1138,87 @@ function PromptsEssays() {
             '&:hover': { background: 'rgba(102, 126, 234, 0.1)' }
           }}>
             Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Move Prompt Dialog */}
+      <Dialog open={moveDialogOpen} onClose={() => setMoveDialogOpen(false)} maxWidth="sm" fullWidth
+        PaperProps={{
+          sx: {
+            background: 'rgba(30, 30, 50, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(102, 126, 234, 0.3)',
+            borderRadius: 3
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          fontWeight: 700
+        }}>
+          Move Prompt
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Typography variant="body2" sx={{ mb: 2, color: '#e0e0e0' }}>
+            Current Folder: <strong>{selectedPromptToMove?.folder ? folders.find(f => f.id === selectedPromptToMove.folder)?.name : 'None'}</strong>
+          </Typography>
+          <FormControl fullWidth sx={{ mb: 3 }}>
+            <InputLabel id="move-folder-select-label" sx={{ color: '#b0b0b0' }}>Move to Folder</InputLabel>
+            <Select
+              labelId="move-folder-select-label"
+              value={targetFolder}
+              label="Move to Folder"
+              onChange={(e) => setTargetFolder(e.target.value as string)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  background: 'rgba(40, 40, 60, 0.8)',
+                  color: '#ffffff',
+                  '& fieldset': {
+                    borderColor: 'rgba(102, 126, 234, 0.3)'
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#667eea'
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#667eea',
+                    borderWidth: 2
+                  }
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#b0b0b0'
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#667eea'
+                }
+              }}
+            >
+              <MenuItem value="">None (No Folder)</MenuItem>
+              {folders.map((folder) => (
+                <MenuItem key={folder.id} value={folder.id}>
+                  {folder.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setMoveDialogOpen(false)} sx={{ 
+            color: '#b0b0b0',
+            '&:hover': { background: 'rgba(102, 126, 234, 0.1)' }
+          }}>
+            Cancel
+          </Button>
+          <Button onClick={movePrompt} variant="contained" sx={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            '&:hover': {
+              background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
+            }
+          }}>
+            Move Prompt
           </Button>
         </DialogActions>
       </Dialog>
