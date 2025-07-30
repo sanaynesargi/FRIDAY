@@ -398,7 +398,7 @@ function IdeaBoards() {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4, height: '100vh', overflow: 'hidden' }}>
+    <Container maxWidth="xl" sx={{ py: 4, height: 'calc(100vh - 64px)', overflow: 'hidden' }}>
       <Typography variant="h3" gutterBottom fontWeight={700} sx={{ 
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         backgroundClip: 'text',

@@ -208,7 +208,7 @@ function PromptsEssays() {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4, minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+    <Container maxWidth="xl" sx={{ py: 4, minHeight: 'calc(100vh - 64px)' }}>
       <Typography variant="h3" gutterBottom fontWeight={700} sx={{ 
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         backgroundClip: 'text',

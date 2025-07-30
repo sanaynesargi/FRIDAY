@@ -385,7 +385,11 @@ function App() {
   };
 
   return (
-    <>
+    <Box sx={{ 
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+      backgroundAttachment: 'fixed'
+    }}>
       {/* Navigation Bar */}
       <AppBar position="static" sx={{ 
         background: 'rgba(30, 30, 50, 0.95)',
@@ -449,7 +453,7 @@ function App() {
       ) : currentPage === 'prompts-essays' ? (
         <PromptsEssays />
       ) : (
-        <Container maxWidth="xl" sx={{ py: 4, minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+        <Container maxWidth="xl" sx={{ py: 4, minHeight: 'calc(100vh - 64px)' }}>
           <Box sx={{ display: 'flex', gap: 4, flexDirection: { xs: 'column', md: 'row' } }}>
             <Box sx={{ flex: 1 }}>
               <Paper elevation={8} sx={{ 
@@ -1081,7 +1085,7 @@ function App() {
           </Snackbar>
         </Container>
       )}
-    </>
+    </Box>
   );
 }
 
