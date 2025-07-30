@@ -452,31 +452,75 @@ def get_prompts():
     return {"prompts": load_prompts()}
 
 @app.post("/prompts")
-def create_prompt(req: PromptRequest):
-    prompts = load_prompts()
-    new_prompt = {
-        "id": str(uuid.uuid4()),
-        "title": req.title,
-        "prompt": req.prompt,
-        "essay_link": req.essay_link,
-        "backed_up": False,
-        "note_name": "",
-        "drafts": []
-    }
-    prompts.append(new_prompt)
-    save_prompts(prompts)
-    return {"prompt": new_prompt}
+def create_prompt(prompt: dict):
+    try:
+        # Load existing prompts
+        try:
+            with open("prompts.json", "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            data = {"prompts": []}
+        
+        # Create new prompt with ID
+        new_prompt = {
+            "id": str(uuid.uuid4()),
+            "title": prompt["title"],
+            "prompt": prompt["prompt"],
+            "essay_link": prompt.get("essay_link", ""),
+            "backed_up": False,
+            "note_name": "",
+            "drafts": [],
+            "folder": prompt.get("folder", "")
+        }
+        
+        data["prompts"].append(new_prompt)
+        
+        # Save back to file
+        with open("prompts.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return {"message": "Prompt created successfully", "prompt": new_prompt}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/prompts/{prompt_id}")
-def update_prompt(prompt_id: str, req: PromptUpdateRequest):
-    prompts = load_prompts()
-    for prompt in prompts:
-        if prompt["id"] == prompt_id:
-            prompt["backed_up"] = req.backed_up
-            prompt["note_name"] = req.note_name
-            save_prompts(prompts)
-            return {"prompt": prompt}
-    raise HTTPException(status_code=404, detail="Prompt not found")
+def update_prompt(prompt_id: str, update_data: dict):
+    try:
+        # Load existing prompts
+        try:
+            with open("prompts.json", "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+        
+        # Find and update prompt
+        prompts = data.get("prompts", [])
+        prompt_to_update = None
+        for prompt in prompts:
+            if prompt["id"] == prompt_id:
+                prompt_to_update = prompt
+                break
+        
+        if not prompt_to_update:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+        
+        # Update fields
+        if "backed_up" in update_data:
+            prompt_to_update["backed_up"] = update_data["backed_up"]
+        if "note_name" in update_data:
+            prompt_to_update["note_name"] = update_data["note_name"]
+        if "folder" in update_data:
+            prompt_to_update["folder"] = update_data["folder"]
+        
+        # Save back to file
+        with open("prompts.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return {"message": "Prompt updated successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/prompts/{prompt_id}")
 def delete_prompt(prompt_id: str):
@@ -595,6 +639,77 @@ def delete_idea_board(board_id: str):
     boards = [board for board in boards if board["id"] != board_id]
     save_idea_boards(boards)
     return {"status": "board deleted"}
+
+# Folder management
+@app.get("/folders")
+def get_folders():
+    try:
+        with open("folders.json", "r") as f:
+            data = json.load(f)
+        return {"folders": data.get("folders", [])}
+    except FileNotFoundError:
+        return {"folders": []}
+
+@app.post("/folders")
+def create_folder(folder: dict):
+    try:
+        # Load existing folders
+        try:
+            with open("folders.json", "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            data = {"folders": []}
+        
+        # Create new folder with ID
+        new_folder = {
+            "id": str(uuid.uuid4()),
+            "name": folder["name"],
+            "color": folder["color"]
+        }
+        
+        data["folders"].append(new_folder)
+        
+        # Save back to file
+        with open("folders.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return {"message": "Folder created successfully", "folder": new_folder}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/folders/{folder_id}")
+def delete_folder(folder_id: str):
+    try:
+        # Load existing folders
+        try:
+            with open("folders.json", "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Folder not found")
+        
+        # Find and remove folder
+        folders = data.get("folders", [])
+        folder_to_delete = None
+        for folder in folders:
+            if folder["id"] == folder_id:
+                folder_to_delete = folder
+                break
+        
+        if not folder_to_delete:
+            raise HTTPException(status_code=404, detail="Folder not found")
+        
+        folders.remove(folder_to_delete)
+        data["folders"] = folders
+        
+        # Save back to file
+        with open("folders.json", "w") as f:
+            json.dump(data, f, indent=2)
+        
+        return {"message": "Folder deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --- Helper functions ---
 def create_obsidian_note(note_type, content, custom_note_name=""):

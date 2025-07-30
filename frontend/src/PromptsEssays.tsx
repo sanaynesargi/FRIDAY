@@ -46,6 +46,7 @@ interface Prompt {
   backed_up: boolean;
   note_name: string;
   drafts: Draft[];
+  folder?: string;
 }
 
 interface Draft {
@@ -56,24 +57,35 @@ interface Draft {
   note_name: string;
 }
 
+interface Folder {
+  id: string;
+  name: string;
+  color: string;
+}
+
 function PromptsEssays() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [selectedFolder, setSelectedFolder] = useState<string>('all');
   
   // Dialog states
   const [promptDialogOpen, setPromptDialogOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
-  const [newPrompt, setNewPrompt] = useState({ title: '', prompt: '', essay_link: '' });
+  const [newPrompt, setNewPrompt] = useState({ title: '', prompt: '', essay_link: '', folder: '' });
   const [draftDialogOpen, setDraftDialogOpen] = useState(false);
   const [selectedPromptId, setSelectedPromptId] = useState('');
   const [newDraft, setNewDraft] = useState({ title: '', link: '' });
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const [newFolder, setNewFolder] = useState({ name: '', color: '#667eea' });
 
-  // Load prompts on component mount
+  // Load prompts and folders on component mount
   useEffect(() => {
     fetchPrompts();
+    fetchFolders();
   }, []);
 
   const toggleCardExpansion = (promptId: string) => {
@@ -100,6 +112,50 @@ function PromptsEssays() {
     }
   };
 
+  const fetchFolders = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/folders`);
+      if (res.ok) {
+        const data = await res.json();
+        setFolders(data.folders || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch folders:', err);
+    }
+  };
+
+  const createFolder = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/folders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFolder)
+      });
+      if (res.ok) {
+        setFolderDialogOpen(false);
+        setNewFolder({ name: '', color: '#667eea' });
+        fetchFolders();
+        setSuccess('Folder created successfully!');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error creating folder');
+    }
+  };
+
+  const deleteFolder = async (folderId: string) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/folders/${folderId}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        fetchFolders();
+        setSuccess('Folder deleted successfully!');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error deleting folder');
+    }
+  };
+
   const createPrompt = async () => {
     try {
       const res = await fetch(`${BACKEND_URL}/prompts`, {
@@ -109,7 +165,7 @@ function PromptsEssays() {
       });
       if (res.ok) {
         setPromptDialogOpen(false);
-        setNewPrompt({ title: '', prompt: '', essay_link: '' });
+        setNewPrompt({ title: '', prompt: '', essay_link: '', folder: '' });
         fetchPrompts();
         setSuccess('Prompt created successfully!');
       }
@@ -248,6 +304,10 @@ function PromptsEssays() {
     window.open(url, '_blank');
   };
 
+  const filteredPrompts = selectedFolder === 'all' 
+    ? prompts 
+    : prompts.filter(prompt => prompt.folder === selectedFolder);
+
   return (
     <Container disableGutters sx={{ py: 4, minHeight: 'calc(100vh - 64px)', px: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -259,23 +319,91 @@ function PromptsEssays() {
         }}>
           Prompts & Essays
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setPromptDialogOpen(true)}
-          sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            color: 'white',
-            borderRadius: 2,
-            fontWeight: 600,
-            '&:hover': {
-              background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-              transform: 'scale(1.05)'
-            }
-          }}
-        >
-          Add Prompt
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          <Button
+            variant="outlined"
+            onClick={() => setFolderDialogOpen(true)}
+            sx={{
+              borderColor: 'rgba(102, 126, 234, 0.5)',
+              color: '#e0e0e0',
+              borderRadius: 2,
+              fontWeight: 600,
+              '&:hover': {
+                borderColor: '#667eea',
+                background: 'rgba(102, 126, 234, 0.1)'
+              }
+            }}
+          >
+            Manage Folders
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => setPromptDialogOpen(true)}
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              borderRadius: 2,
+              fontWeight: 600,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                transform: 'scale(1.05)'
+              }
+            }}
+          >
+            Add Prompt
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Folder Filter */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ color: '#e0e0e0', mb: 2 }}>
+          Filter by Folder:
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Chip
+            label="All Prompts"
+            onClick={() => setSelectedFolder('all')}
+            color={selectedFolder === 'all' ? 'primary' : 'default'}
+            sx={{
+              borderRadius: 2,
+              fontWeight: 600,
+              background: selectedFolder === 'all' 
+                ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                : 'rgba(40, 40, 60, 0.8)',
+              color: selectedFolder === 'all' ? 'white' : '#e0e0e0',
+              border: '1px solid rgba(102, 126, 234, 0.3)',
+              '&:hover': {
+                background: selectedFolder === 'all'
+                  ? 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
+                  : 'rgba(102, 126, 234, 0.1)'
+              }
+            }}
+          />
+          {folders.map((folder) => (
+            <Chip
+              key={folder.id}
+              label={folder.name}
+              onClick={() => setSelectedFolder(folder.id)}
+              color={selectedFolder === folder.id ? 'primary' : 'default'}
+              sx={{
+                borderRadius: 2,
+                fontWeight: 600,
+                background: selectedFolder === folder.id 
+                  ? folder.color
+                  : 'rgba(40, 40, 60, 0.8)',
+                color: selectedFolder === folder.id ? 'white' : '#e0e0e0',
+                border: `1px solid ${folder.color}40`,
+                '&:hover': {
+                  background: selectedFolder === folder.id
+                    ? folder.color
+                    : `${folder.color}20`
+                }
+              }}
+            />
+          ))}
+        </Box>
       </Box>
 
       {/* Grid Layout */}
@@ -286,7 +414,7 @@ function PromptsEssays() {
         maxHeight: 'calc(100vh - 200px)',
         overflow: 'auto'
       }}>
-        {prompts.length === 0 ? (
+        {filteredPrompts.length === 0 ? (
           <Box sx={{ 
             gridColumn: '1 / -1', 
             display: 'flex', 
@@ -304,7 +432,7 @@ function PromptsEssays() {
             </Typography>
           </Box>
         ) : (
-          prompts.map((prompt) => (
+          filteredPrompts.map((prompt) => (
             <Card key={prompt.id} sx={{ 
               height: 'fit-content',
               borderRadius: 3,
@@ -322,19 +450,32 @@ function PromptsEssays() {
               <CardContent sx={{ p: 3 }}>
                 {/* Header */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                  <Typography variant="h6" fontWeight={600} sx={{ 
-                    color: '#ffffff',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
-                    WebkitLineClamp: expandedCards.has(prompt.id) ? 'unset' : 2,
-                    WebkitBoxOrient: 'vertical',
-                    lineHeight: 1.3,
-                    flex: 1,
-                    mr: 1
-                  }}>
-                    {prompt.title}
-                  </Typography>
+                  <Box sx={{ flex: 1, mr: 1 }}>
+                    <Typography variant="h6" fontWeight={600} sx={{ 
+                      color: '#ffffff',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: expandedCards.has(prompt.id) ? 'unset' : 2,
+                      WebkitBoxOrient: 'vertical',
+                      lineHeight: 1.3
+                    }}>
+                      {prompt.title}
+                    </Typography>
+                    {prompt.folder && (
+                      <Chip
+                        label={folders.find(f => f.id === prompt.folder)?.name || 'Unknown Folder'}
+                        size="small"
+                        sx={{
+                          mt: 0.5,
+                          background: folders.find(f => f.id === prompt.folder)?.color || '#667eea',
+                          color: 'white',
+                          fontSize: '0.7rem',
+                          height: 20
+                        }}
+                      />
+                    )}
+                  </Box>
                   <Box sx={{ display: 'flex', gap: 0.5 }}>
                     <IconButton 
                       onClick={() => toggleCardExpansion(prompt.id)}
@@ -642,6 +783,45 @@ function PromptsEssays() {
             }}
             placeholder="Link to Google Docs, etc."
           />
+          <FormControl fullWidth sx={{ mt: 3 }}>
+            <InputLabel id="folder-select-label" sx={{ color: '#b0b0b0' }}>Folder</InputLabel>
+            <Select
+              labelId="folder-select-label"
+              value={newPrompt.folder}
+              label="Folder"
+              onChange={(e) => setNewPrompt({ ...newPrompt, folder: e.target.value as string })}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  background: 'rgba(40, 40, 60, 0.8)',
+                  color: '#ffffff',
+                  '& fieldset': {
+                    borderColor: 'rgba(102, 126, 234, 0.3)'
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#667eea'
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#667eea',
+                    borderWidth: 2
+                  }
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#b0b0b0'
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#667eea'
+                }
+              }}
+            >
+              <MenuItem value="">None</MenuItem>
+              {folders.map((folder) => (
+                <MenuItem key={folder.id} value={folder.id}>
+                  {folder.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
           <Button onClick={() => setPromptDialogOpen(false)} sx={{ 
@@ -767,6 +947,170 @@ function PromptsEssays() {
             }
           }}>
             Create
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Manage Folders Dialog */}
+      <Dialog open={folderDialogOpen} onClose={() => setFolderDialogOpen(false)} maxWidth="sm" fullWidth
+        PaperProps={{
+          sx: {
+            background: 'rgba(30, 30, 50, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(102, 126, 234, 0.3)',
+            borderRadius: 3
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          fontWeight: 700
+        }}>
+          Manage Folders
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Add New Folder
+          </Typography>
+          <TextField
+            label="Folder Name"
+            value={newFolder.name}
+            onChange={(e) => setNewFolder({ ...newFolder, name: e.target.value })}
+            fullWidth
+            sx={{ 
+              mb: 3, 
+              mt: 1,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                background: 'rgba(40, 40, 60, 0.8)',
+                color: '#ffffff',
+                '& fieldset': {
+                  borderColor: 'rgba(102, 126, 234, 0.3)'
+                },
+                '&:hover fieldset': {
+                  borderColor: '#667eea'
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#667eea',
+                  borderWidth: 2
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: '#b0b0b0'
+              },
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: '#667eea'
+              }
+            }}
+            placeholder="Enter folder name"
+          />
+          <FormControl fullWidth sx={{ mb: 3 }}>
+            <InputLabel id="folder-color-label" sx={{ color: '#b0b0b0' }}>Folder Color</InputLabel>
+            <Select
+              labelId="folder-color-label"
+              value={newFolder.color}
+              label="Folder Color"
+              onChange={(e) => setNewFolder({ ...newFolder, color: e.target.value as string })}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  background: 'rgba(40, 40, 60, 0.8)',
+                  color: '#ffffff',
+                  '& fieldset': {
+                    borderColor: 'rgba(102, 126, 234, 0.3)'
+                  },
+                  '&:hover fieldset': {
+                    borderColor: '#667eea'
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#667eea',
+                    borderWidth: 2
+                  }
+                },
+                '& .MuiInputLabel-root': {
+                  color: '#b0b0b0'
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#667eea'
+                }
+              }}
+            >
+              <MenuItem value="#667eea">Blue</MenuItem>
+              <MenuItem value="#4caf50">Green</MenuItem>
+              <MenuItem value="#ff9800">Orange</MenuItem>
+              <MenuItem value="#f44336">Red</MenuItem>
+              <MenuItem value="#9c27b0">Purple</MenuItem>
+              <MenuItem value="#00bcd4">Cyan</MenuItem>
+            </Select>
+          </FormControl>
+          <Button
+            variant="contained"
+            onClick={createFolder}
+            disabled={!newFolder.name.trim()}
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
+              },
+              '&:disabled': {
+                background: 'rgba(80, 80, 100, 0.5)',
+                color: '#666666'
+              }
+            }}
+          >
+            Create Folder
+          </Button>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Existing Folders
+          </Typography>
+          {folders.length === 0 ? (
+            <Typography variant="body2" sx={{ color: '#b0b0b0' }}>
+              No folders yet. Create one to organize your prompts!
+            </Typography>
+          ) : (
+            <List>
+              {folders.map((folder) => (
+                <ListItem key={folder.id} sx={{ p: 1, mb: 0.5 }}>
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: folder.color }}>
+                          •
+                        </Typography>
+                        {folder.name}
+                      </Box>
+                    }
+                    secondary={
+                      <Typography variant="caption" color="#b0b0b0">
+                        {folder.color}
+                      </Typography>
+                    }
+                  />
+                  <ListItemSecondaryAction>
+                    <IconButton
+                      size="small"
+                      onClick={() => deleteFolder(folder.id)}
+                      sx={{ color: '#ff5252', '&:hover': { background: 'rgba(255, 82, 82, 0.1)' } }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setFolderDialogOpen(false)} sx={{ 
+            color: '#b0b0b0',
+            '&:hover': { background: 'rgba(102, 126, 234, 0.1)' }
+          }}>
+            Close
           </Button>
         </DialogActions>
       </Dialog>
