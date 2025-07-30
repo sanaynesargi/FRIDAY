@@ -454,8 +454,8 @@ function App() {
         <PromptsEssays />
       ) : (
         <Container disableGutters sx={{ py: 3, minHeight: 'calc(100vh - 64px)', px: 2 }}>
-          <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' } }}>
-            <Box sx={{ flex: 1 }}>
+          <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', md: 'row' }, width: '100%' }}>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Paper elevation={8} sx={{ 
                 p: 3, 
                 borderRadius: 3,
@@ -979,7 +979,7 @@ function App() {
               </Paper>
             </Box>
             
-            <Box sx={{ width: { xs: '100%', md: 280 } }}>
+            <Box sx={{ width: { xs: '100%', md: 320 }, flexShrink: 0 }}>
               <Card elevation={8} sx={{ 
                 borderRadius: 3,
                 background: 'rgba(30, 30, 50, 0.95)',
