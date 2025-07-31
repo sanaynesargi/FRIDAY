@@ -599,16 +599,26 @@ function PromptsEssays() {
                       Essay Link:
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Typography variant="body2" sx={{ 
-                        wordBreak: 'break-all', 
-                        color: '#e0e0e0',
-                        fontSize: '0.75rem',
-                        overflow: expandedCards.has(prompt.id) ? 'visible' : 'hidden',
-                        textOverflow: expandedCards.has(prompt.id) ? 'unset' : 'ellipsis',
-                        whiteSpace: expandedCards.has(prompt.id) ? 'normal' : 'nowrap',
-                        flex: 1
-                      }}>
-                        {prompt.essay_link}
+                      <Typography 
+                        variant="body2" 
+                        onClick={() => openUrl(prompt.essay_link)}
+                        sx={{ 
+                          wordBreak: 'break-all', 
+                          color: '#667eea',
+                          fontSize: '0.75rem',
+                          overflow: expandedCards.has(prompt.id) ? 'visible' : 'hidden',
+                          textOverflow: expandedCards.has(prompt.id) ? 'unset' : 'ellipsis',
+                          whiteSpace: expandedCards.has(prompt.id) ? 'normal' : 'nowrap',
+                          flex: 1,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          '&:hover': { 
+                            color: '#8b9dc3',
+                            textDecoration: 'underline'
+                          }
+                        }}
+                      >
+                        {formatUrl(prompt.essay_link)}
                       </Typography>
                       <IconButton 
                         size="small"
