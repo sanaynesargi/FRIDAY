@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Typography,
@@ -35,8 +35,18 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import MicIcon from '@mui/icons-material/Mic';
+import MicOffIcon from '@mui/icons-material/MicOff';
 
 const BACKEND_URL = 'http://localhost:8000';
+
+// Add type declarations for SpeechRecognition
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
 
 interface Prompt {
   id: string;
@@ -85,6 +95,11 @@ function PromptsEssays() {
   const [selectedPromptToMove, setSelectedPromptToMove] = useState<Prompt | null>(null);
   const [targetFolder, setTargetFolder] = useState('');
 
+  // Voice recognition state
+  const [isListening, setIsListening] = useState(false);
+  const [voiceCommand, setVoiceCommand] = useState('');
+  const recognitionRef = useRef<any>(null);
+
   // Predefined colors for random assignment
   const folderColors = [
     '#667eea', '#4caf50', '#ff9800', '#f44336', '#9c27b0', '#00bcd4',
@@ -96,7 +111,92 @@ function PromptsEssays() {
   useEffect(() => {
     fetchPrompts();
     fetchFolders();
+    initializeVoiceRecognition();
   }, []);
+
+  const initializeVoiceRecognition = () => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+        setVoiceCommand('');
+      };
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setVoiceCommand(transcript);
+        processVoiceCommand(transcript);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        setError('Voice recognition error. Please try again.');
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  };
+
+  const processVoiceCommand = (command: string) => {
+    const lowerCommand = command.toLowerCase();
+    
+    // Remove common words and clean up the command
+    let cleanCommand = lowerCommand
+      .replace(/show me /g, '')
+      .replace(/show /g, '')
+      .replace(/display /g, '')
+      .replace(/open /g, '')
+      .replace(/go to /g, '')
+      .replace(/switch to /g, '')
+      .trim();
+
+    // Handle "all prompts" or "all" command
+    if (cleanCommand.includes('all') || cleanCommand.includes('everything')) {
+      setSelectedFolder('all');
+      setSuccess('Showing all prompts');
+      return;
+    }
+
+    // Find matching folder
+    const matchingFolder = folders.find(folder => 
+      folder.name.toLowerCase().includes(cleanCommand) ||
+      cleanCommand.includes(folder.name.toLowerCase())
+    );
+
+    if (matchingFolder) {
+      setSelectedFolder(matchingFolder.id);
+      setSuccess(`Showing prompts in ${matchingFolder.name}`);
+    } else {
+      setError(`No folder found matching "${cleanCommand}". Available folders: ${folders.map(f => f.name).join(', ')}`);
+    }
+  };
+
+  const startVoiceRecognition = () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.start();
+      } catch (error) {
+        console.error('Error starting voice recognition:', error);
+        setError('Could not start voice recognition. Please try again.');
+      }
+    } else {
+      setError('Voice recognition is not supported in this browser.');
+    }
+  };
+
+  const stopVoiceRecognition = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  };
 
   const toggleCardExpansion = (promptId: string) => {
     setExpandedCards(prev => {
@@ -391,6 +491,23 @@ function PromptsEssays() {
             Manage Folders
           </Button>
           <Button
+            variant="outlined"
+            onClick={isListening ? stopVoiceRecognition : startVoiceRecognition}
+            startIcon={isListening ? <MicOffIcon /> : <MicIcon />}
+            sx={{
+              borderColor: isListening ? '#ff5252' : 'rgba(102, 126, 234, 0.5)',
+              color: isListening ? '#ff5252' : '#e0e0e0',
+              borderRadius: 2,
+              fontWeight: 600,
+              '&:hover': {
+                borderColor: isListening ? '#ff5252' : '#667eea',
+                background: isListening ? 'rgba(255, 82, 82, 0.1)' : 'rgba(102, 126, 234, 0.1)'
+              }
+            }}
+          >
+            {isListening ? 'Stop Listening' : 'Voice Commands'}
+          </Button>
+          <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => setPromptDialogOpen(true)}
@@ -469,6 +586,27 @@ function PromptsEssays() {
             />
           ))}
         </Box>
+        
+        {/* Voice Command Status */}
+        {isListening && (
+          <Box sx={{ mt: 2, p: 2, borderRadius: 2, background: 'rgba(255, 82, 82, 0.1)', border: '1px solid rgba(255, 82, 82, 0.3)' }}>
+            <Typography variant="body2" sx={{ color: '#ff5252', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <MicIcon fontSize="small" />
+              Listening for voice commands...
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#b0b0b0', mt: 0.5, display: 'block' }}>
+              Try saying: "show me Stanford", "all prompts", or any folder name
+            </Typography>
+          </Box>
+        )}
+        
+        {voiceCommand && !isListening && (
+          <Box sx={{ mt: 2, p: 2, borderRadius: 2, background: 'rgba(102, 126, 234, 0.1)', border: '1px solid rgba(102, 126, 234, 0.3)' }}>
+            <Typography variant="body2" sx={{ color: '#667eea', fontWeight: 600 }}>
+              Command: "{voiceCommand}"
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       {/* Grid Layout */}
