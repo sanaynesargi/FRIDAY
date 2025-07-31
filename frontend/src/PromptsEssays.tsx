@@ -165,17 +165,18 @@ function PromptsEssays() {
       return;
     }
 
-    // Find matching folder
-    const matchingFolder = folders.find(folder => 
-      folder.name.toLowerCase().includes(cleanCommand) ||
-      cleanCommand.includes(folder.name.toLowerCase())
-    );
+    // Find matching folder - convert both to lowercase for comparison
+    const matchingFolder = folders.find(folder => {
+      const folderNameLower = folder.name.toLowerCase();
+      return folderNameLower.includes(cleanCommand) || cleanCommand.includes(folderNameLower);
+    });
 
     if (matchingFolder) {
       setSelectedFolder(matchingFolder.id);
       setSuccess(`Showing prompts in ${matchingFolder.name}`);
     } else {
-      setError(`No folder found matching "${cleanCommand}". Available folders: ${folders.map(f => f.name).join(', ')}`);
+      const availableFolders = folders.map(f => f.name).join(', ');
+      setError(`No folder found matching "${cleanCommand}". Available folders: ${availableFolders}`);
     }
   };
 
