@@ -470,7 +470,7 @@ def create_prompt(prompt: dict):
                 data = json.load(f)
         except FileNotFoundError:
             data = {"prompts": []}
-        
+ 
         # Create new prompt with ID
         new_prompt = {
             "id": str(uuid.uuid4()),
@@ -482,8 +482,8 @@ def create_prompt(prompt: dict):
             "drafts": [],
             "folder": prompt.get("folder", "")
         }
-        
-        data["prompts"].append(new_prompt)
+ 
+        data.append(new_prompt)
         
         # Save back to file
         with open("prompts.json", "w") as f:
@@ -502,9 +502,8 @@ def update_prompt(prompt_id: str, update_data: dict):
                 data = json.load(f)
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Prompt not found")
-        
         # Find and update prompt
-        prompts = data.get("prompts", [])
+        prompts = data
         prompt_to_update = None
         for prompt in prompts:
             if prompt["id"] == prompt_id:
@@ -520,8 +519,12 @@ def update_prompt(prompt_id: str, update_data: dict):
         if "note_name" in update_data:
             prompt_to_update["note_name"] = update_data["note_name"]
         if "folder" in update_data:
+            if not prompt_to_update.get("folder"):
+                prompt_to_update["folder"] = {}
+
             prompt_to_update["folder"] = update_data["folder"]
         
+
         # Save back to file
         with open("prompts.json", "w") as f:
             json.dump(data, f, indent=2)
@@ -820,10 +823,10 @@ def create_obsidian_note(note_type, content, custom_note_name=""):
     # Use Local REST API (PUT /vault/{note_name}) to create a new note
     if custom_note_name:
         # Use the custom note name with prefix
-        note_name = f"{note_type.title()} - {custom_note_name}.md"
+        note_name = f"Undergraduate Admission/{note_type.title()} - {custom_note_name}.md"
     else:
         # Fallback to auto-generated name
-        note_name = f"{note_type.title()} - {content[:30].replace(' ', '_')}.md"
+        note_name = f"Undergraduate Admission/{note_type.title()} - {content[:30].replace(' ', '_')}.md"
     url = f"{OBSIDIAN_HOST}/vault/{note_name}"
     headers = {
         "Authorization": f"Bearer {OBSIDIAN_API_KEY}",
@@ -833,12 +836,12 @@ def create_obsidian_note(note_type, content, custom_note_name=""):
     try:
         resp = requests.put(url, data=content, headers=headers, verify=False)
         if not resp.ok:
-            print("Obsidian Local REST API error (create_obsidian_note):", resp.text)
+            print(f"Obsidian Local REST API error (create_obsidian_note): {resp.text}")
             raise Exception(f"Obsidian Local REST API error: {resp.text}")
+        return note_name
     except Exception as e:
-        print("Exception in create_obsidian_note:", e)
+        print(f"Exception in create_obsidian_note: {e}")
         raise HTTPException(status_code=500, detail=f"Obsidian Local REST API error: {e}")
-    return note_name
 
 def list_obsidian_notes():
     # Use Local REST API (GET /vault/) to list files in vault
@@ -852,14 +855,20 @@ def list_obsidian_notes():
         if not resp.ok:
             raise Exception(f"Obsidian Local REST API error: {resp.text}")
         all_files = resp.json().get("files", [])
-        # Filter to only include files in the root directory (no '/' in the path)
-        root_files = [file for file in all_files if '/' not in file]
+        # Filter to only include files in the "Undergraduate Admission" directory
+        undergraduate_files = [file for file in all_files if file.startswith("Undergraduate Admission/")]
+        # Remove the "Undergraduate Admission/" prefix from file names
+        root_files = [file.replace("Undergraduate Admission/", "") for file in undergraduate_files]
         return root_files
     except Exception as e:
         return []
 
 def get_note_content(note_name):
     # Fetch the content of a note from Obsidian
+    # Add "Undergraduate Admission/" prefix if not already present
+    if not note_name.startswith("Undergraduate Admission/"):
+        note_name = f"Undergraduate Admission/{note_name}"
+    
     url = f"{OBSIDIAN_HOST}/vault/{note_name}"
     headers = {
         "Authorization": f"Bearer {OBSIDIAN_API_KEY}",
@@ -912,6 +921,10 @@ def suggest_connections(content, existing_notes, new_note_name=None):
 
 def add_connection(note_name, connection, reason):
     # Fetch current note content
+    # Add "Undergraduate Admission/" prefix if not already present
+    if not note_name.startswith("Undergraduate Admission/"):
+        note_name = f"Undergraduate Admission/{note_name}"
+    
     current_content = get_note_content(note_name)
     # Append the connection with reason
     appended_content = f"\n[[{connection}]] — {reason}"
@@ -944,8 +957,9 @@ def all_notes():
             content = get_note_content(note)
             note_type = "idea" if note.startswith("Idea -") else "piece"
             
-            # Metadata
-            file_path = os.path.join(os.getenv("OBSIDIAN_VAULT_PATH", "."), note)
+            # Metadata - use the full path with Undergraduate Admission prefix
+            full_note_path = f"Undergraduate Admission/{note}"
+            file_path = os.path.join(os.getenv("OBSIDIAN_VAULT_PATH", "."), full_note_path)
             try:
                 stat = os.stat(file_path)
                 created = stat.st_ctime
@@ -989,13 +1003,11 @@ def all_notes():
 @app.get("/note_content/{note_name}")
 def get_note_content_by_name(note_name: str):
     try:
-        # Try to find the note with different prefixes
+        # Try to find the note with different prefixes in the Undergraduate Admission directory
         for prefix in ["Idea - ", "Piece - "]:
-            file_name = f"{prefix}{note_name}.md"
-            file_path = os.path.join(os.getenv("OBSIDIAN_VAULT_PATH", "."), file_name)
-            
-            if os.path.exists(file_path):
-                content = get_note_content(file_name)
+            file_name = f"Undergraduate Admission/{prefix}{note_name}.md"
+            content = get_note_content(file_name)
+            if content:  # If content is not empty, we found the note
                 return {"content": content}
         
         raise HTTPException(status_code=404, detail="Note not found")
