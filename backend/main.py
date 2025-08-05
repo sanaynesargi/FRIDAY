@@ -823,10 +823,10 @@ def create_obsidian_note(note_type, content, custom_note_name=""):
     # Use Local REST API (PUT /vault/{note_name}) to create a new note
     if custom_note_name:
         # Use the custom note name with prefix
-        note_name = f"Undergraduate Admission/{note_type.title()} - {custom_note_name}.md"
+        note_name = f"UndergraduateAdmission/{note_type.title()} - {custom_note_name}.md"
     else:
         # Fallback to auto-generated name
-        note_name = f"Undergraduate Admission/{note_type.title()} - {content[:30].replace(' ', '_')}.md"
+        note_name = f"UndergraduateAdmission/{note_type.title()} - {content[:30].replace(' ', '_')}.md"
     url = f"{OBSIDIAN_HOST}/vault/{note_name}"
     headers = {
         "Authorization": f"Bearer {OBSIDIAN_API_KEY}",
@@ -854,20 +854,22 @@ def list_obsidian_notes():
         resp = requests.get(url, headers=headers, verify=False)
         if not resp.ok:
             raise Exception(f"Obsidian Local REST API error: {resp.text}")
+        
         all_files = resp.json().get("files", [])
-        # Filter to only include files in the "Undergraduate Admission" directory
-        undergraduate_files = [file for file in all_files if file.startswith("Undergraduate Admission/")]
-        # Remove the "Undergraduate Admission/" prefix from file names
-        root_files = [file.replace("Undergraduate Admission/", "") for file in undergraduate_files]
+        # Filter to only include files in the "UndergraduateAdmission" directory
+        undergraduate_files = [file for file in all_files if file.startswith("UndergraduateAdmission/")]
+        # Remove the "UndergraduateAdmission/" prefix from file names
+        root_files = [file.replace("UndergraduateAdmission/", "") for file in undergraduate_files]
         return root_files
     except Exception as e:
+        print(e)
         return []
 
 def get_note_content(note_name):
     # Fetch the content of a note from Obsidian
-    # Add "Undergraduate Admission/" prefix if not already present
-    if not note_name.startswith("Undergraduate Admission/"):
-        note_name = f"Undergraduate Admission/{note_name}"
+    # Add "UndergraduateAdmission/" prefix if not already present
+    if not note_name.startswith("UndergraduateAdmission/"):
+        note_name = f"UndergraduateAdmission/{note_name}"
     
     url = f"{OBSIDIAN_HOST}/vault/{note_name}"
     headers = {
@@ -921,9 +923,9 @@ def suggest_connections(content, existing_notes, new_note_name=None):
 
 def add_connection(note_name, connection, reason):
     # Fetch current note content
-    # Add "Undergraduate Admission/" prefix if not already present
-    if not note_name.startswith("Undergraduate Admission/"):
-        note_name = f"Undergraduate Admission/{note_name}"
+    # Add "UndergraduateAdmission/" prefix if not already present
+    if not note_name.startswith("UndergraduateAdmission/"):
+        note_name = f"UndergraduateAdmission/{note_name}"
     
     current_content = get_note_content(note_name)
     # Append the connection with reason
@@ -957,8 +959,8 @@ def all_notes():
             content = get_note_content(note)
             note_type = "idea" if note.startswith("Idea -") else "piece"
             
-            # Metadata - use the full path with Undergraduate Admission prefix
-            full_note_path = f"Undergraduate Admission/{note}"
+            # Metadata - use the full path with UndergraduateAdmission prefix
+            full_note_path = f"UndergraduateAdmission/{note}"
             file_path = os.path.join(os.getenv("OBSIDIAN_VAULT_PATH", "."), full_note_path)
             try:
                 stat = os.stat(file_path)
@@ -1003,9 +1005,9 @@ def all_notes():
 @app.get("/note_content/{note_name}")
 def get_note_content_by_name(note_name: str):
     try:
-        # Try to find the note with different prefixes in the Undergraduate Admission directory
+        # Try to find the note with different prefixes in the UndergraduateAdmission directory
         for prefix in ["Idea - ", "Piece - "]:
-            file_name = f"Undergraduate Admission/{prefix}{note_name}.md"
+            file_name = f"UndergraduateAdmission/{prefix}{note_name}.md"
             content = get_note_content(file_name)
             if content:  # If content is not empty, we found the note
                 return {"content": content}
