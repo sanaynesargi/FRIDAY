@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "id": "6971132a-ed0f-490e-95a1-f2498bf95f01",
+      "name": "UT Austin",
+      "color": "#ff9800"
+    },
+    {
+      "id": "546e48d1-94b6-42e8-bda6-f29db29de5f9",
+      "name": "Stanford",
+      "color": "#667eea"
+    },
+    {
+      "id": "60b1cc58-63a7-4207-a520-dcdd99620e72",
+      "name": "UC Schools",
+      "color": "#ff4081"
+    }
+  ]
+}

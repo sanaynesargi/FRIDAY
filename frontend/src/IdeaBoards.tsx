@@ -371,7 +371,7 @@ function IdeaBoards() {
       setError('Please set your Obsidian vault path in the main page first');
       return;
     }
-    const fullPath = `${vaultPath}/${fileName}`;
+    const fullPath = `${vaultPath}/UndergraduateAdmission/${fileName}`;
     window.location.href = `obsidian://open?path=${encodeURIComponent(fullPath)}`;
   }, [vaultPath]);
 
@@ -393,7 +393,7 @@ function IdeaBoards() {
       setError('Please set your Obsidian vault path in the main page first');
       return;
     }
-    const fullPath = `${vaultPath}/${fileName}`;
+    const fullPath = `${vaultPath}/UndergraduateAdmission/${fileName}`;
     window.location.href = `obsidian://open?path=${encodeURIComponent(fullPath)}`;
   };
 

@@ -99,7 +99,6 @@ class PromptRequest(BaseModel):
 
 class DraftRequest(BaseModel):
     title: str
-    link: str
 
 class PromptUpdateRequest(BaseModel):
     id: str
@@ -166,6 +165,7 @@ def connect(req: ConnectionRequest):
 
 @app.get("/stats")
 def get_stats():
+    print(os.getenv("OBSIDIAN_VAULT_PATH", "."))
     try:
         # Get all notes from the vault
         existing_notes = list_obsidian_notes()
@@ -579,15 +579,22 @@ def create_draft(prompt_id: str, req: DraftRequest):
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Prompt not found")
         
+        # Handle both old format (list) and new format (dict with prompts key)
+        if isinstance(data, list):
+            prompts = data
+        elif isinstance(data, dict) and "prompts" in data:
+            prompts = data["prompts"]
+        else:
+            prompts = []
+        
         # Find prompt and add draft
-        prompts = data.get("prompts", [])
         prompt_found = False
         for prompt in prompts:
             if prompt["id"] == prompt_id:
                 new_draft = {
                     "id": str(uuid.uuid4()),
                     "title": req.title,
-                    "link": req.link,
+                    "link": prompt.get("essay_link", ""),  # Use the prompt's essay_link
                     "backed_up": False,
                     "note_name": ""
                 }
@@ -598,9 +605,16 @@ def create_draft(prompt_id: str, req: DraftRequest):
         if not prompt_found:
             raise HTTPException(status_code=404, detail="Prompt not found")
         
-        # Save back to file
-        with open("prompts.json", "w") as f:
-            json.dump(data, f, indent=2)
+        # Save back to file - maintain the same format
+        if isinstance(data, list):
+            # Save as list directly
+            with open("prompts.json", "w") as f:
+                json.dump(prompts, f, indent=2)
+        else:
+            # Save with prompts key
+            data["prompts"] = prompts
+            with open("prompts.json", "w") as f:
+                json.dump(data, f, indent=2)
         
         return {"draft": new_draft}
     except HTTPException:
@@ -620,8 +634,15 @@ def update_draft(prompt_id: str, draft_id: str, req: PromptUpdateRequest):
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Prompt not found")
         
+        # Handle both old format (list) and new format (dict with prompts key)
+        if isinstance(data, list):
+            prompts = data
+        elif isinstance(data, dict) and "prompts" in data:
+            prompts = data["prompts"]
+        else:
+            prompts = []
+        
         # Find prompt and update draft
-        prompts = data.get("prompts", [])
         draft_found = False
         for prompt in prompts:
             if prompt["id"] == prompt_id:
@@ -637,9 +658,16 @@ def update_draft(prompt_id: str, draft_id: str, req: PromptUpdateRequest):
         if not draft_found:
             raise HTTPException(status_code=404, detail="Draft not found")
         
-        # Save back to file
-        with open("prompts.json", "w") as f:
-            json.dump(data, f, indent=2)
+        # Save back to file - maintain the same format
+        if isinstance(data, list):
+            # Save as list directly
+            with open("prompts.json", "w") as f:
+                json.dump(prompts, f, indent=2)
+        else:
+            # Save with prompts key
+            data["prompts"] = prompts
+            with open("prompts.json", "w") as f:
+                json.dump(data, f, indent=2)
         
         return {"message": "Draft updated successfully"}
     except HTTPException:
@@ -657,8 +685,15 @@ def delete_draft(prompt_id: str, draft_id: str):
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Prompt not found")
         
+        # Handle both old format (list) and new format (dict with prompts key)
+        if isinstance(data, list):
+            prompts = data
+        elif isinstance(data, dict) and "prompts" in data:
+            prompts = data["prompts"]
+        else:
+            prompts = []
+        
         # Find prompt and remove draft
-        prompts = data.get("prompts", [])
         draft_found = False
         for prompt in prompts:
             if prompt["id"] == prompt_id:
@@ -671,9 +706,16 @@ def delete_draft(prompt_id: str, draft_id: str):
         if not draft_found:
             raise HTTPException(status_code=404, detail="Draft not found")
         
-        # Save back to file
-        with open("prompts.json", "w") as f:
-            json.dump(data, f, indent=2)
+        # Save back to file - maintain the same format
+        if isinstance(data, list):
+            # Save as list directly
+            with open("prompts.json", "w") as f:
+                json.dump(prompts, f, indent=2)
+        else:
+            # Save with prompts key
+            data["prompts"] = prompts
+            with open("prompts.json", "w") as f:
+                json.dump(data, f, indent=2)
         
         return {"message": "Draft deleted successfully"}
     except HTTPException:
@@ -845,7 +887,7 @@ def create_obsidian_note(note_type, content, custom_note_name=""):
 
 def list_obsidian_notes():
     # Use Local REST API (GET /vault/) to list files in vault
-    url = f"{OBSIDIAN_HOST}/vault/"
+    url = f"{OBSIDIAN_HOST}/vault/UndergraduateAdmission/"
     headers = {
         "Authorization": f"Bearer {OBSIDIAN_API_KEY}",
         "accept": "application/json"
@@ -857,9 +899,10 @@ def list_obsidian_notes():
         
         all_files = resp.json().get("files", [])
         # Filter to only include files in the "UndergraduateAdmission" directory
-        undergraduate_files = [file for file in all_files if file.startswith("UndergraduateAdmission/")]
+        undergraduate_files = all_files
         # Remove the "UndergraduateAdmission/" prefix from file names
         root_files = [file.replace("UndergraduateAdmission/", "") for file in undergraduate_files]
+
         return root_files
     except Exception as e:
         print(e)

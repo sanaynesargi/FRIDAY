@@ -1,4 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+
+// API Spam Prevention:
+// - Fixed infinite loop in useEffect by separating data loading from voice recognition initialization
+// - Added loading flags to prevent simultaneous API calls
+// - Added rate limiting (1 second minimum between calls)
+// - Added cleanup functions to prevent memory leaks
 import {
   Container,
   Typography,
@@ -77,6 +83,9 @@ function PromptsEssays() {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isFetchingPrompts, setIsFetchingPrompts] = useState(false);
+  const [isFetchingFolders, setIsFetchingFolders] = useState(false);
+  const lastFetchTime = useRef<{ prompts: number; folders: number }>({ prompts: 0, folders: 0 });
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -88,7 +97,7 @@ function PromptsEssays() {
   const [newPrompt, setNewPrompt] = useState({ title: '', prompt: '', essay_link: '', folder: '' });
   const [draftDialogOpen, setDraftDialogOpen] = useState(false);
   const [selectedPromptId, setSelectedPromptId] = useState('');
-  const [newDraft, setNewDraft] = useState({ title: '', link: '' });
+  const [newDraft, setNewDraft] = useState({ title: '' });
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [newFolder, setNewFolder] = useState({ name: '', color: '#667eea' });
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
@@ -109,10 +118,35 @@ function PromptsEssays() {
 
   // Load prompts and folders on component mount
   useEffect(() => {
-    fetchPrompts();
-    fetchFolders();
-    initializeVoiceRecognition();
+    let mounted = true;
+    
+    const loadData = async () => {
+      if (mounted) {
+        await fetchPrompts();
+        await fetchFolders();
+      }
+    };
+    
+    loadData();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
+
+  // Initialize voice recognition when folders are loaded
+  useEffect(() => {
+    if (folders.length > 0) {
+      initializeVoiceRecognition();
+    }
+    
+    return () => {
+      // Cleanup voice recognition if component unmounts
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [folders]);
 
   const initializeVoiceRecognition = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -168,7 +202,9 @@ function PromptsEssays() {
     // Find matching folder - convert both to lowercase for comparison
     const matchingFolder = folders.find(folder => {
       const folderNameLower = folder.name.toLowerCase();
-      return folderNameLower.includes(cleanCommand) || cleanCommand.includes(folderNameLower);
+
+      console.log(`Checking folder: ${folderNameLower} against command: ${cleanCommand}`);
+      return folderNameLower.includes(cleanCommand) || cleanCommand.includes(folderNameLower) || folderNameLower == cleanCommand || cleanCommand == folderNameLower;
     });
 
     if (matchingFolder) {
@@ -212,26 +248,62 @@ function PromptsEssays() {
   };
 
   const fetchPrompts = async () => {
+    if (isFetchingPrompts) {
+      console.log('Already fetching prompts, skipping...');
+      return;
+    }
+    
+    // Rate limiting: prevent fetching more than once per second
+    const now = Date.now();
+    if (now - lastFetchTime.current.prompts < 1000) {
+      console.log('Rate limited: skipping prompts fetch');
+      return;
+    }
+    
     try {
+      setIsFetchingPrompts(true);
+      lastFetchTime.current.prompts = now;
+      console.log('Fetching prompts...');
       const res = await fetch(`${BACKEND_URL}/prompts`);
       if (res.ok) {
         const data = await res.json();
         setPrompts(data.prompts || []);
+        console.log('Prompts fetched successfully');
       }
     } catch (err) {
       console.error('Failed to fetch prompts:', err);
+    } finally {
+      setIsFetchingPrompts(false);
     }
   };
 
   const fetchFolders = async () => {
+    if (isFetchingFolders) {
+      console.log('Already fetching folders, skipping...');
+      return;
+    }
+    
+    // Rate limiting: prevent fetching more than once per second
+    const now = Date.now();
+    if (now - lastFetchTime.current.folders < 1000) {
+      console.log('Rate limited: skipping folders fetch');
+      return;
+    }
+    
     try {
+      setIsFetchingFolders(true);
+      lastFetchTime.current.folders = now;
+      console.log('Fetching folders...');
       const res = await fetch(`${BACKEND_URL}/folders`);
       if (res.ok) {
         const data = await res.json();
         setFolders(data.folders || []);
+        console.log('Folders fetched successfully');
       }
     } catch (err) {
       console.error('Failed to fetch folders:', err);
+    } finally {
+      setIsFetchingFolders(false);
     }
   };
 
@@ -373,7 +445,7 @@ function PromptsEssays() {
       });
       if (res.ok) {
         setDraftDialogOpen(false);
-        setNewDraft({ title: '', link: '' });
+        setNewDraft({ title: '' });
         fetchPrompts();
         setSuccess('Draft created successfully!');
       } else {
@@ -442,7 +514,7 @@ function PromptsEssays() {
       setError('Please set your Obsidian vault path in the main page');
       return;
     }
-    const fullPath = `${vaultPath}/${fileName}`;
+    const fullPath = `${vaultPath}/UndergraduateAdmission/${fileName}`;
     window.location.href = `obsidian://open?path=${encodeURIComponent(fullPath)}`;
   };
 
@@ -1088,7 +1160,7 @@ function PromptsEssays() {
           color: 'white',
           fontWeight: 700
         }}>
-          Add New Draft
+          Add New Draft (Auto-linked to Essay)
         </DialogTitle>
         <DialogContent sx={{ p: 3 }}>
           <TextField
@@ -1123,36 +1195,7 @@ function PromptsEssays() {
             }}
             placeholder="Enter draft title"
           />
-          <TextField
-            label="Link"
-            value={newDraft.link}
-            onChange={(e) => setNewDraft({ ...newDraft, link: e.target.value })}
-            fullWidth
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                background: 'rgba(40, 40, 60, 0.8)',
-                color: '#ffffff',
-                '& fieldset': {
-                  borderColor: 'rgba(102, 126, 234, 0.3)'
-                },
-                '&:hover fieldset': {
-                  borderColor: '#667eea'
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#667eea',
-                  borderWidth: 2
-                }
-              },
-              '& .MuiInputLabel-root': {
-                color: '#b0b0b0'
-              },
-              '& .MuiInputLabel-root.Mui-focused': {
-                color: '#667eea'
-              }
-            }}
-            placeholder="Link to draft document"
-          />
+
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
           <Button onClick={() => setDraftDialogOpen(false)} sx={{ 
@@ -1161,7 +1204,7 @@ function PromptsEssays() {
           }}>
             Cancel
           </Button>
-          <Button onClick={createDraft} variant="contained" disabled={!newDraft.title.trim() || !newDraft.link.trim()} sx={{
+          <Button onClick={createDraft} variant="contained" disabled={!newDraft.title.trim()} sx={{
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
             '&:hover': {

@@ -27,6 +27,18 @@
         "name": "Jet Engine Optimization",
         "type": "idea",
         "external": false
+      },
+      {
+        "id": "Fluid Dynamics & Optimum Laminar Flow",
+        "name": "Fluid Dynamics & Optimum Laminar Flow",
+        "type": "idea",
+        "external": false
+      },
+      {
+        "id": "Post Quantum Hashing Algorithms",
+        "name": "Post Quantum Hashing Algorithms",
+        "type": "idea",
+        "external": false
       }
     ],
     "edges": [
@@ -53,9 +65,30 @@
         "sourceName": "Jet Engine Optimization",
         "targetName": "Aerodynamics:_SEES",
         "note": "Another example of a real-world experience with research"
+      },
+      {
+        "source": "Post Quantum Hashing Algorithms",
+        "target": "Fluid Dynamics & Optimum Laminar Flow",
+        "id": "Post Quantum Hashing Algorithms-Fluid Dynamics & Optimum Laminar Flow",
+        "sourceName": "Post Quantum Hashing Algorithms",
+        "targetName": "Fluid Dynamics & Optimum Laminar Flow"
+      },
+      {
+        "source": "Fluid Dynamics & Optimum Laminar Flow",
+        "target": "Aerodynamics:_SEES",
+        "id": "Fluid Dynamics & Optimum Laminar Flow-Aerodynamics:_SEES",
+        "sourceName": "Fluid Dynamics & Optimum Laminar Flow",
+        "targetName": "Aerodynamics:_SEES"
+      },
+      {
+        "source": "Fluid Dynamics & Optimum Laminar Flow",
+        "target": "Jet Engine Optimization",
+        "id": "Fluid Dynamics & Optimum Laminar Flow-Jet Engine Optimization",
+        "sourceName": "Fluid Dynamics & Optimum Laminar Flow",
+        "targetName": "Jet Engine Optimization"
       }
     ],
     "created": 1750486772.278207,
-    "modified": 1750488044097.0
+    "modified": 1750564511226.0
   }
 ]

@@ -76,6 +76,8 @@ function App() {
   const [vaultDialogOpen, setVaultDialogOpen] = useState(false);
   const [vaultInput, setVaultInput] = useState('');
   const [pendingNotePath, setPendingNotePath] = useState<string | null>(null);
+  const [advancedSettingsOpen, setAdvancedSettingsOpen] = useState(false);
+  const [advancedVaultPath, setAdvancedVaultPath] = useState('');
   const [selectedNotes, setSelectedNotes] = useState<string[]>([]);
   const [batchTagDialogOpen, setBatchTagDialogOpen] = useState(false);
   const [batchTags, setBatchTags] = useState('');
@@ -307,7 +309,7 @@ function App() {
       setVaultDialogOpen(true);
       return;
     }
-    const fullPath = `${vaultPath}/${fileName}`;
+    const fullPath = `${vaultPath}/UndergraduateAdmission/${fileName}`;
     window.location.href = `obsidian://open?path=${encodeURIComponent(fullPath)}`;
   };
 
@@ -317,10 +319,24 @@ function App() {
     localStorage.setItem('obsidianVaultPath', vaultInput);
     setVaultDialogOpen(false);
     if (pendingNotePath) {
-      const fullPath = `${vaultInput}/${pendingNotePath}`;
+      const fullPath = `${vaultInput}/UndergraduateAdmission/${pendingNotePath}`;
       window.location.href = `obsidian://open?path=${encodeURIComponent(fullPath)}`;
       setPendingNotePath(null);
     }
+  };
+
+  // Open advanced settings
+  const handleOpenAdvancedSettings = () => {
+    setAdvancedVaultPath(vaultPath);
+    setAdvancedSettingsOpen(true);
+  };
+
+  // Save advanced settings
+  const handleSaveAdvancedSettings = () => {
+    setVaultPath(advancedVaultPath);
+    localStorage.setItem('obsidianVaultPath', advancedVaultPath);
+    setAdvancedSettingsOpen(false);
+    setSuccess('Advanced settings saved successfully!');
   };
 
   // Batch tag handler
@@ -477,7 +493,7 @@ function App() {
                     textShadow: '0 2px 4px rgba(0,0,0,0.3)'
                   }}>
                     FRIDAY Idea Base
-                  </Typography>
+        </Typography>
                   <Typography variant="h6" align="center" gutterBottom sx={{ 
                     color: '#e0e0e0',
                     mb: 3,
@@ -485,11 +501,44 @@ function App() {
                   }}>
                     Integrated with Obsidian.
                   </Typography>
+                  
+                  {/* Vault Path Display and Advanced Settings */}
+                  <Box sx={{ mb: 3, textAlign: 'center' }}>
+                    <Typography variant="body2" sx={{ color: '#b0b0b0', mb: 1 }}>
+                      Current Vault Path:
+                    </Typography>
+                    <Typography variant="body1" sx={{ 
+                      color: '#e0e0e0', 
+                      fontFamily: 'monospace',
+                      backgroundColor: 'rgba(0,0,0,0.3)',
+                      padding: '8px 12px',
+                      borderRadius: 1,
+                      mb: 2,
+                      wordBreak: 'break-all'
+                    }}>
+                      {vaultPath || 'Not set'}
+                    </Typography>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleOpenAdvancedSettings}
+                      sx={{
+                        borderColor: 'rgba(102, 126, 234, 0.5)',
+                        color: '#e0e0e0',
+                        '&:hover': {
+                          borderColor: '#667eea',
+                          background: 'rgba(102, 126, 234, 0.1)'
+                        }
+                      }}
+                    >
+                      Advanced Settings
+                    </Button>
+                  </Box>
                   <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-                    <ToggleButtonGroup
-                      value={type}
-                      exclusive
-                      onChange={handleType}
+          <ToggleButtonGroup
+            value={type}
+            exclusive
+            onChange={handleType}
                       sx={{ 
                         mb: 2,
                         '& .MuiToggleButton-root': {
@@ -513,10 +562,10 @@ function App() {
                           }
                         }
                       }}
-                    >
-                      <ToggleButton value="idea">Idea</ToggleButton>
+          >
+            <ToggleButton value="idea">Idea</ToggleButton>
                       <ToggleButton value="piece">Essay</ToggleButton>
-                    </ToggleButtonGroup>
+          </ToggleButtonGroup>
                     
                     <TextField
                       label="Note Name"
@@ -550,14 +599,14 @@ function App() {
                       }}
                       error={hasInvalidChars(noteName)}
                     />
-                    <TextField
-                      label={type === 'idea' ? 'Your Idea' : 'Your Essay'}
-                      value={content}
-                      onChange={e => setContent(e.target.value)}
-                      multiline
+          <TextField
+            label={type === 'idea' ? 'Your Idea' : 'Your Essay'}
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            multiline
                       minRows={3}
-                      fullWidth
-                      required
+            fullWidth
+            required
                       sx={{ 
                         mb: 2,
                         '& .MuiOutlinedInput-root': {
@@ -587,12 +636,12 @@ function App() {
                       <FormControlLabel
                         control={<Checkbox checked={external} onChange={e => setExternal(e.target.checked)} />}
                         label={<span style={{ color: '#b0b0b0' }}>External Piece</span>}
-                        sx={{ mb: 2 }}
-                      />
+            sx={{ mb: 2 }}
+          />
                     )}
-                    <Button
-                      type="submit"
-                      variant="contained"
+          <Button
+            type="submit"
+            variant="contained"
                       disabled={loading || hasInvalidChars(noteName)}
                       sx={{
                         borderRadius: 2,
@@ -610,14 +659,14 @@ function App() {
                           color: '#666666'
                         }
                       }}
-                    >
+          >
                       {loading ? <CircularProgress size={20} color="inherit" /> : 'Submit'}
-                    </Button>
-                  </Box>
+          </Button>
+        </Box>
                 </Paper>
                 
                 {/* Suggestions Section */}
-                {suggestions.length > 0 && (
+        {suggestions.length > 0 && (
                   <Paper elevation={8} sx={{ 
                     mt: 3, 
                     p: 3, 
@@ -635,10 +684,10 @@ function App() {
                       mb: 2
                     }}>
                       Suggested Connections
-                    </Typography>
+            </Typography>
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                       {suggestions.map((suggestion, index) => (
-                        <Chip
+                <Chip
                           key={index}
                           label={suggestion}
                           onClick={() => {
@@ -663,14 +712,14 @@ function App() {
                                 : 'rgba(102, 126, 234, 0.1)'
                             }
                           }}
-                        />
-                      ))}
-                    </Stack>
+                />
+              ))}
+            </Stack>
                     {selected.length > 0 && (
-                      <Button
+            <Button
                         onClick={handleConnect}
                         disabled={connectLoading}
-                        variant="contained"
+              variant="contained"
                         sx={{
                           mt: 2,
                           borderRadius: 2,
@@ -757,7 +806,7 @@ function App() {
                     label="Search Query"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    fullWidth
+              fullWidth
                     sx={{ 
                       mb: 2,
                       '& .MuiOutlinedInput-root': {
@@ -858,7 +907,7 @@ function App() {
                           }}
                         >
                           Add
-                        </Button>
+            </Button>
                       </Box>
                       
                       {searchTags.length > 0 && (
@@ -979,9 +1028,9 @@ function App() {
                           </Card>
                         ))}
                       </Box>
-                    </Box>
-                  )}
-                </Paper>
+          </Box>
+        )}
+      </Paper>
               </Box>
             </Box>
             
@@ -1076,27 +1125,121 @@ function App() {
             </Box>
           </Box>
           
-          <Snackbar
-            open={!!success}
-            autoHideDuration={4000}
-            onClose={() => setSuccess('')}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      <Snackbar
+        open={!!success}
+        autoHideDuration={4000}
+        onClose={() => setSuccess('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" onClose={() => setSuccess('')} sx={{ width: '100%' }}>
+          {success}
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={!!error}
+        autoHideDuration={4000}
+        onClose={() => setError('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="error" onClose={() => setError('')} sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
+
+      {/* Advanced Settings Dialog */}
+      <Dialog 
+        open={advancedSettingsOpen} 
+        onClose={() => setAdvancedSettingsOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            background: 'rgba(30, 30, 50, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(102, 126, 234, 0.3)',
+            borderRadius: 3
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          fontWeight: 700
+        }}>
+          Advanced Settings
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ mb: 2, color: '#e0e0e0' }}>
+            Obsidian Vault Configuration
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2, color: '#b0b0b0' }}>
+            Configure your Obsidian vault path for note opening functionality.
+          </Typography>
+          
+          <TextField
+            label="Vault Path"
+            value={advancedVaultPath}
+            onChange={(e) => setAdvancedVaultPath(e.target.value)}
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="/path/to/your/obsidian/vault"
+            sx={{ 
+              mb: 3,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                background: 'rgba(40, 40, 60, 0.8)',
+                color: '#ffffff',
+                '& fieldset': {
+                  borderColor: 'rgba(102, 126, 234, 0.3)'
+                },
+                '&:hover fieldset': {
+                  borderColor: '#667eea'
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#667eea',
+                  borderWidth: 2
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: '#b0b0b0'
+              },
+              '& .MuiInputLabel-root.Mui-focused': {
+                color: '#667eea'
+              }
+            }}
+          />
+          
+          <Typography variant="body2" sx={{ color: '#b0b0b0', fontSize: '0.875rem' }}>
+            <strong>Example:</strong> /Users/username/Library/Mobile Documents/iCloud~md~obsidian/Documents/FRIDAY
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button 
+            onClick={() => setAdvancedSettingsOpen(false)} 
+            sx={{ 
+              color: '#b0b0b0',
+              '&:hover': { background: 'rgba(102, 126, 234, 0.1)' }
+            }}
           >
-            <Alert severity="success" onClose={() => setSuccess('')} sx={{ width: '100%' }}>
-              {success}
-            </Alert>
-          </Snackbar>
-          <Snackbar
-            open={!!error}
-            autoHideDuration={4000}
-            onClose={() => setError('')}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSaveAdvancedSettings} 
+            variant="contained" 
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)'
+              }
+            }}
           >
-            <Alert severity="error" onClose={() => setError('')} sx={{ width: '100%' }}>
-              {error}
-            </Alert>
-          </Snackbar>
-        </Container>
+            Save Settings
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
       )}
     </Box>
   );
